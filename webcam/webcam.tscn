@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=3 uid="uid://cosgj5pmr2m8i"]
+
+[ext_resource type="Script" uid="uid://dyusl7cxr3465" path="res://webcam/webcam.gd" id="1_t1k5v"]
+
+[sub_resource type="Gradient" id="Gradient_t1k5v"]
+offsets = PackedFloat32Array(0, 0.993976)
+colors = PackedColorArray(0.466181, 0.466181, 0.466181, 1, 0.466667, 0.466667, 0.466667, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_qa20w"]
+gradient = SubResource("Gradient_t1k5v")
+
+[node name="Webcam" type="TextureRect"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = SubResource("GradientTexture1D_qa20w")
+script = ExtResource("1_t1k5v")
