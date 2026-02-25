@@ -1,6 +1,7 @@
 extends Node3D
 @export_range(0,3) var track_id:int
 @export var key:String
+@export var track_material : Material
 
 var bodies = []
 

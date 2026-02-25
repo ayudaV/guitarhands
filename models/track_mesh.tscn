@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://b24xsgq76t3gh"]
+[gd_scene format=3 uid="uid://b24xsgq76t3gh"]
 
 [ext_resource type="Script" uid="uid://65ofa6i513iw" path="res://models/spawner.gd" id="1_tser3"]
 [ext_resource type="Script" uid="uid://cleouoctj0fau" path="res://models/track_controller.gd" id="1_u140q"]
@@ -35,45 +35,46 @@ albedo_color = Color(1, 0.577597, 0.364079, 0.215686)
 material = SubResource("StandardMaterial3D_b2826")
 size = Vector3(3, 1, 6)
 
-[node name="Track" type="Node3D"]
+[node name="Track" type="Node3D" unique_id=162049856]
 script = ExtResource("1_u140q")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1522939582]
 mesh = SubResource("PlaneMesh_r24an")
 skeleton = NodePath("../..")
 
-[node name="MeshInstance3D2" type="MeshInstance3D" parent="."]
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="." unique_id=309998880]
 transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0, 0, 0)
 mesh = SubResource("CylinderMesh_bkcj2")
 skeleton = NodePath("../..")
 
-[node name="Spawner" type="Node3D" parent="."]
+[node name="Spawner" type="Node3D" parent="." unique_id=2131844103]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -45, 0, 0)
 script = ExtResource("1_tser3")
 button = ExtResource("2_ipebg")
 
-[node name="Timer" type="Timer" parent="Spawner"]
+[node name="Timer" type="Timer" parent="Spawner" unique_id=434040793]
+one_shot = true
 autostart = true
 
-[node name="Hitbox" type="Area3D" parent="."]
+[node name="Hitbox" type="Area3D" parent="." unique_id=2041170807]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43, 0, 0)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Hitbox"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Hitbox" unique_id=956735069]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 mesh = SubResource("BoxMesh_xru1g")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Hitbox"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Hitbox" unique_id=1990038510]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 shape = SubResource("BoxShape3D_6dx3y")
 
-[node name="HurtBox" type="Area3D" parent="."]
+[node name="HurtBox" type="Area3D" parent="." unique_id=421992345]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50, 0, 0)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="HurtBox"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="HurtBox" unique_id=1193612270]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 mesh = SubResource("BoxMesh_bquux")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBox"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBox" unique_id=1185820434]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 shape = SubResource("BoxShape3D_6dx3y")
 

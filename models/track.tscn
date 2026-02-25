@@ -1,7 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://c8rtg4iv5bre"]
+[gd_scene format=3 uid="uid://c8rtg4iv5bre"]
 
 [ext_resource type="PackedScene" uid="uid://dq8p7746jxhqb" path="res://ui/Dashboard.tscn" id="2_r6v7o"]
+[ext_resource type="Material" uid="uid://cv75kf4t3a0ul" path="res://resources/materials/blue_button.tres" id="3_keyu3"]
 [ext_resource type="PackedScene" uid="uid://b24xsgq76t3gh" path="res://models/track_mesh.tscn" id="3_o2pbs"]
+[ext_resource type="Material" uid="uid://cgprxs42rtjwv" path="res://resources/materials/orange_button.tres" id="4_mhkfj"]
+[ext_resource type="Material" uid="uid://bvdanx5yyboa2" path="res://resources/materials/yellow_button.tres" id="5_8v3b3"]
+[ext_resource type="Material" uid="uid://cc18bhleyk32q" path="res://resources/materials/red_button.tres" id="6_jvbhu"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_gl1gl"]
 
@@ -15,34 +19,38 @@ ambient_light_source = 3
 ambient_light_color = Color(1, 1, 1, 1)
 ambient_light_energy = 8.0
 
-[node name="Node3D" type="Node3D"]
+[node name="Node3D" type="Node3D" unique_id=77171516]
 
-[node name="Camera3D" type="Camera3D" parent="."]
+[node name="Camera3D" type="Camera3D" parent="." unique_id=923839857]
 transform = Transform3D(-3.78552e-08, -0.5, 0.866025, -2.18557e-08, 0.866025, 0.5, -1, 1.95399e-14, -4.37114e-08, 53.7442, 10.9406, 0)
 
-[node name="Dashboard" parent="Camera3D" instance=ExtResource("2_r6v7o")]
+[node name="Dashboard" parent="Camera3D" unique_id=1291494424 instance=ExtResource("2_r6v7o")]
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1492134730]
 environment = SubResource("Environment_1vb33")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1170652727]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 10.261, 0)
 
-[node name="Track" parent="." instance=ExtResource("3_o2pbs")]
+[node name="Track" parent="." unique_id=1686106334 instance=ExtResource("3_o2pbs")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 9)
 key = "LTrack"
+track_material = ExtResource("3_keyu3")
 
-[node name="Track2" parent="." instance=ExtResource("3_o2pbs")]
+[node name="Track2" parent="." unique_id=1073949076 instance=ExtResource("3_o2pbs")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 3)
 track_id = 1
 key = "MLTrack"
+track_material = ExtResource("4_mhkfj")
 
-[node name="Track3" parent="." instance=ExtResource("3_o2pbs")]
+[node name="Track3" parent="." unique_id=108423928 instance=ExtResource("3_o2pbs")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3)
 track_id = 2
 key = "MRTrack"
+track_material = ExtResource("5_8v3b3")
 
-[node name="Track4" parent="." instance=ExtResource("3_o2pbs")]
+[node name="Track4" parent="." unique_id=873535464 instance=ExtResource("3_o2pbs")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -9)
 track_id = 3
 key = "RTrack"
+track_material = ExtResource("6_jvbhu")

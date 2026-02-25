@@ -11,3 +11,6 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	velocity = _velocity
 	move_and_slide()
+
+func change_material(material: Material):
+	$Base.material_override = material

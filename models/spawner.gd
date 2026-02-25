@@ -13,5 +13,7 @@ func _process(delta: float) -> void:
 
 
 func _on_timer_timeout() -> void:
-	var button = button.instantiate()
+	var button:Guitar_button = button.instantiate()
+	button.change_material(get_parent().track_material)
 	add_child(button)
+	$Timer.start(randi_range(1,6) * 0.5)
