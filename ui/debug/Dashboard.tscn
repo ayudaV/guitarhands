@@ -1,0 +1,110 @@
+[gd_scene format=3 uid="uid://dq8p7746jxhqb"]
+
+[ext_resource type="PackedScene" uid="uid://b7e7tacpa4co6" path="res://handtrack/ht_webcam.tscn" id="1_pmcx6"]
+[ext_resource type="Script" uid="uid://bfydg20gar3iu" path="res://ui/debug/distance_generator.gd" id="3_rnicy"]
+
+[node name="Dashboard" type="CanvasLayer" unique_id=41964403]
+
+[node name="Left" type="VBoxContainer" parent="." unique_id=2086191999]
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -324.0
+offset_right = 200.0
+offset_bottom = 324.0
+grow_vertical = 2
+size_flags_horizontal = 0
+theme_override_constants/separation = 5
+alignment = 1
+script = ExtResource("3_rnicy")
+side = "LEFT"
+
+[node name="Title" type="Label" parent="Left" unique_id=677642395]
+layout_mode = 2
+text = "Left Hand"
+
+[node name="Index" type="ProgressBar" parent="Left" unique_id=1731235310]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+min_value = 1.8
+max_value = 2.3
+value = 1.8
+
+[node name="Middle" type="ProgressBar" parent="Left" unique_id=1330039070]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+min_value = 1.8
+max_value = 2.3
+value = 1.8
+
+[node name="Ring" type="ProgressBar" parent="Left" unique_id=1771697368]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+min_value = 1.8
+max_value = 2.3
+value = 1.8
+
+[node name="Pinky" type="ProgressBar" parent="Left" unique_id=1049208008]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+min_value = 1.8
+max_value = 2.3
+value = 1.8
+
+[node name="Right" type="VBoxContainer" parent="." unique_id=1925915251]
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -324.0
+offset_bottom = 324.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_constants/separation = 5
+alignment = 1
+script = ExtResource("3_rnicy")
+side = "RIGHT"
+
+[node name="Title" type="Label" parent="Right" unique_id=184878877]
+layout_mode = 2
+text = "Right Hand"
+
+[node name="Index" type="ProgressBar" parent="Right" unique_id=1912482604]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+min_value = 1.8
+max_value = 2.3
+value = 1.8
+
+[node name="Middle" type="ProgressBar" parent="Right" unique_id=1233708585]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+min_value = 1.8
+max_value = 2.3
+value = 1.8
+
+[node name="Ring" type="ProgressBar" parent="Right" unique_id=907803961]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+min_value = 1.8
+max_value = 2.3
+value = 1.8
+
+[node name="Pinky" type="ProgressBar" parent="Right" unique_id=652509071]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+min_value = 1.8
+max_value = 2.3
+value = 1.8
+
+[node name="HandTrackWebcam" parent="." unique_id=833699818 instance=ExtResource("1_pmcx6")]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_bottom = 0.0
+offset_left = -300.0
+offset_bottom = 1.17188
+grow_horizontal = 0
+grow_vertical = 1
+expand_mode = 5

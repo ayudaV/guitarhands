@@ -28,7 +28,7 @@ class LiveStreamHandLatencyTest:
         self.last_result = None
         self._touch_state = {}
         self.click_count = 0
-        self.pinch_threshold_m = 0.035
+        self.pinch_threshold_m = 0.15
 
         base_options = python.BaseOptions(model_asset_path=self.model_path)
         options = vision.HandLandmarkerOptions(
@@ -52,13 +52,12 @@ class LiveStreamHandLatencyTest:
         middle_pt = ((thumb_pt[0] + index_pt[0]) // 2, (thumb_pt[1] + index_pt[1]) // 2)
 
         is_touching = False
-        if hand_world_landmarks and len(hand_world_landmarks) > HandLandmark.INDEX_FINGER_TIP:
-            thumb_w = hand_world_landmarks[HandLandmark.THUMB_TIP]
-            index_w = hand_world_landmarks[HandLandmark.INDEX_FINGER_TIP]
-            dx = thumb_w.x - index_w.x
-            dy = thumb_w.y - index_w.y
-            dz = thumb_w.z - index_w.z
-            pinch_distance_m = (dx * dx + dy * dy + dz * dz) ** 0.5
+        if hand_landmarks and len(hand_landmarks) > HandLandmark.INDEX_FINGER_TIP:
+            thumb_n = hand_landmarks[HandLandmark.THUMB_TIP]
+            index_n = hand_landmarks[HandLandmark.INDEX_FINGER_TIP]
+            dx = (thumb_n.x - index_n.x) * width
+            dy = (thumb_n.y - index_n.y) * height
+            pinch_distance_m = (dx * dx + dy * dy) ** 0.5 / 100.0
             is_touching = pinch_distance_m <= self.pinch_threshold_m
 
         was_touching = self._touch_state.get(hand_id, False)

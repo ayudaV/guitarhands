@@ -1,0 +1,23 @@
+[gd_resource type="Theme" format=3 uid="uid://rwi2uqc15552"]
+
+[ext_resource type="FontFile" uid="uid://bbnh28lphmkna" path="res://resources/fonts/Oswald/Oswald-VariableFont_wght.ttf" id="1_r7ubg"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_r7ubg"]
+content_margin_left = 5.0
+content_margin_top = 5.0
+content_margin_right = 40.0
+content_margin_bottom = 5.0
+bg_color = Color(0.14901961, 0.05882353, 0.3529412, 0.6784314)
+corner_radius_top_left = 30
+corner_radius_top_right = 10
+corner_radius_bottom_right = 50
+corner_radius_bottom_left = 10
+shadow_color = Color(0.21960784, 0, 0.67058825, 0.6)
+shadow_size = 4
+shadow_offset = Vector2(3.56, 2.625)
+
+[resource]
+default_font = ExtResource("1_r7ubg")
+Label/colors/font_color = Color(1, 0.11372549, 1, 1)
+Label/font_sizes/font_size = 32
+PanelContainer/styles/panel = SubResource("StyleBoxFlat_r7ubg")

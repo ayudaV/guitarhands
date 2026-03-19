@@ -1,0 +1,39 @@
+[gd_scene format=3 uid="uid://7u8dgyhu41mj"]
+
+[ext_resource type="PackedScene" uid="uid://b24xsgq76t3gh" path="res://models/track_mesh.tscn" id="1_dleft"]
+[ext_resource type="Script" uid="uid://jm5ope45tgf" path="res://test_tracks/test_track_01.gd" id="1_moq07"]
+[ext_resource type="PackedScene" uid="uid://dy2kq360o466m" path="res://models/track_follower.tscn" id="2_btg86"]
+[ext_resource type="Material" uid="uid://dwhw262c5pnlx" path="res://resources/materials/green_button.tres" id="2_n4us7"]
+[ext_resource type="AudioStream" uid="uid://b7kvu4aquobxr" path="res://resources/musics/Show_Ado.wav" id="3_bqdop"]
+[ext_resource type="PackedScene" uid="uid://blx3tvfaejatq" path="res://models/Button.tscn" id="3_dqc6e"]
+[ext_resource type="Material" uid="uid://cc18bhleyk32q" path="res://resources/materials/red_button.tres" id="3_pdl72"]
+[ext_resource type="Material" uid="uid://bvdanx5yyboa2" path="res://resources/materials/yellow_button.tres" id="4_ni4gc"]
+[ext_resource type="Material" uid="uid://cv75kf4t3a0ul" path="res://resources/materials/blue_button.tres" id="5_wsk6i"]
+[ext_resource type="Material" uid="uid://cgprxs42rtjwv" path="res://resources/materials/orange_button.tres" id="6_df1rt"]
+
+[sub_resource type="Curve3D" id="Curve3D_btg86"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0, 0, -3.0895061, 0.30775642, 1.3012631, 3.0895061, -0.30775642, -1.3012631, 8, 0, 0, -3.9028301, 0.35020185, -1.3747892, 3.9028301, -0.35020185, 1.3747892, 16, 0, 0, -2.5918198, -0.99133873, -1.6715794, 2.5918198, 0.99133873, 1.6715794, 24, 0, 8, -2.4437332, -0.0017776489, 2.3489413, 2.4437332, 0.0017776489, -2.3489413, 32, 0, 8, -3.17033, -0.0025978088, -1.4187822, 3.17033, 0.0025978088, 1.4187822, 40, 0, 8, -2.152977, -0.0016365051, 2.2602692, 2.152977, 0.0016365051, -2.2602692, 48, 0, 6, -4.331768, -0.003364563, 1.2755259, 4.331768, 0.003364563, -1.2755259, 56, 0, 0, 0, 0, 0, 0, 0, 0, 64, 0, 0, 0, 0, 0, 0, 0, 0, 450, 0, 0),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+}
+point_count = 10
+
+[node name="TestTrack01" type="Node3D" unique_id=1100975494]
+script = ExtResource("1_moq07")
+button_scene = ExtResource("3_dqc6e")
+save_loc = &"user://save_game.dat"
+track_materials = Array[Material]([ExtResource("2_n4us7"), ExtResource("3_pdl72"), ExtResource("4_ni4gc"), ExtResource("5_wsk6i"), ExtResource("6_df1rt")])
+
+[node name="Track" parent="." unique_id=630540959 instance=ExtResource("1_dleft")]
+curve = SubResource("Curve3D_btg86")
+
+[node name="TrackFollower" parent="Track" unique_id=883199981 instance=ExtResource("2_btg86")]
+transform = Transform3D(-0.25615373, -0.058453176, -0.9648618, 0, 0.99816084, -0.06047098, 0.96663165, -0.01548987, -0.25568473, 0, 0, 0)
+is_playing = true
+bpm = 132
+
+[node name="Music" type="AudioStreamPlayer" parent="." unique_id=859611046]
+stream = ExtResource("3_bqdop")
+autoplay = true
+
+[connection signal="finished" from="Music" to="." method="_on_music_finished"]
