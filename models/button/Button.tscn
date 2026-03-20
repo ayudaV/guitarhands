@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://blx3tvfaejatq"]
 
-[ext_resource type="Script" uid="uid://crn087grkw287" path="res://models/button.gd" id="1_1oh2i"]
+[ext_resource type="Script" uid="uid://crn087grkw287" path="res://models/button/button.gd" id="1_1oh2i"]
 [ext_resource type="Material" uid="uid://cgprxs42rtjwv" path="res://resources/materials/orange_button.tres" id="2_gfoe3"]
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_8edeu"]
@@ -21,7 +21,7 @@ height = 0.1
 [node name="Button" type="PathFollow3D" unique_id=1118431779]
 script = ExtResource("1_1oh2i")
 
-[node name="Body" type="StaticBody3D" parent="." unique_id=2086863008]
+[node name="Body" type="StaticBody3D" parent="." unique_id=2086863008 groups=["Button"]]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Body" unique_id=760249756]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)

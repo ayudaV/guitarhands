@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://4bpd3oxqbuuj"]
+
+[ext_resource type="ArrayMesh" uid="uid://cfbljwa5ge3ah" path="res://models/ring/ring.tres" id="1_cf11n"]
+[ext_resource type="PackedScene" uid="uid://cupuiah5f224f" path="res://models/ring/ring.glb" id="2_5nw8k"]
+
+[node name="Ring" type="MeshInstance3D" unique_id=2030820235]
+mesh = ExtResource("1_cf11n")
+
+[node name="ring" parent="." unique_id=1772211450 instance=ExtResource("2_5nw8k")]

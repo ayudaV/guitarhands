@@ -1,0 +1,229 @@
+[gd_scene format=3 uid="uid://c125j42emxdbg"]
+
+[ext_resource type="Script" uid="uid://ccfq80xfqkl50" path="res://models/guitar_hitbox/hitbox_controller.gd" id="1_dh7te"]
+[ext_resource type="Script" uid="uid://co3nhvkmt6dg0" path="res://ui/debug/hand_overlay.gd" id="2_evcr4"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_m2y3f"]
+transparency = 1
+albedo_color = Color(0.537255, 1, 1, 0.0901961)
+
+[sub_resource type="BoxMesh" id="BoxMesh_lne8j"]
+material = SubResource("StandardMaterial3D_m2y3f")
+size = Vector3(1, 0.5, 0.01)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_bpcae"]
+size = Vector3(1, 0.5, 0.2)
+
+[sub_resource type="CurveTexture" id="CurveTexture_nsg67"]
+
+[sub_resource type="Curve" id="Curve_81qqm"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_xwpya"]
+curve = SubResource("Curve_81qqm")
+
+[sub_resource type="Curve" id="Curve_nsg67"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_a5flf"]
+curve = SubResource("Curve_nsg67")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_pab16"]
+direction = Vector3(0, 1, 0)
+spread = 30.0
+initial_velocity_min = 1.0
+initial_velocity_max = 4.0
+scale_curve = SubResource("CurveTexture_a5flf")
+alpha_curve = SubResource("CurveTexture_nsg67")
+emission_curve = SubResource("CurveTexture_xwpya")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nsg67"]
+emission_enabled = true
+emission = Color(0.9999998, 0.3115298, 0.8884111, 1)
+emission_energy_multiplier = 4.0
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_a5flf"]
+material = SubResource("StandardMaterial3D_nsg67")
+size = Vector2(0.1, 0.1)
+orientation = 2
+
+[node name="Hitbox" type="Node3D" unique_id=67998447]
+
+[node name="LLeft" type="Area3D" parent="." unique_id=327160031]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, 0)
+script = ExtResource("1_dh7te")
+track_name = &"LLeft"
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="LLeft" unique_id=1179273052]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+mesh = SubResource("BoxMesh_lne8j")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="LLeft" unique_id=334817053]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+shape = SubResource("BoxShape3D_bpcae")
+
+[node name="GPUParticles3D" type="GPUParticles3D" parent="LLeft" unique_id=1837536633]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 0, 0, 0)
+emitting = false
+amount = 16
+lifetime = 0.34
+one_shot = true
+explosiveness = 1.0
+process_material = SubResource("ParticleProcessMaterial_pab16")
+draw_pass_1 = SubResource("PlaneMesh_a5flf")
+
+[node name="Left" type="Area3D" parent="." unique_id=2021815967]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 0)
+script = ExtResource("1_dh7te")
+track_name = &"Left"
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Left" unique_id=1932851661]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+mesh = SubResource("BoxMesh_lne8j")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Left" unique_id=926140466]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+shape = SubResource("BoxShape3D_bpcae")
+
+[node name="GPUParticles3D" type="GPUParticles3D" parent="Left" unique_id=1397335338]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 0, 0, 0)
+emitting = false
+amount = 16
+lifetime = 0.34
+one_shot = true
+explosiveness = 1.0
+process_material = SubResource("ParticleProcessMaterial_pab16")
+draw_pass_1 = SubResource("PlaneMesh_a5flf")
+
+[node name="Main" type="Area3D" parent="." unique_id=1304312519]
+script = ExtResource("1_dh7te")
+track_name = &"Main"
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Main" unique_id=18158953]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+mesh = SubResource("BoxMesh_lne8j")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Main" unique_id=133607719]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+shape = SubResource("BoxShape3D_bpcae")
+
+[node name="GPUParticles3D" type="GPUParticles3D" parent="Main" unique_id=111968523]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 0, 0, 0)
+emitting = false
+amount = 16
+lifetime = 0.34
+one_shot = true
+explosiveness = 1.0
+process_material = SubResource("ParticleProcessMaterial_pab16")
+draw_pass_1 = SubResource("PlaneMesh_a5flf")
+
+[node name="Right" type="Area3D" parent="." unique_id=1780065357]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+script = ExtResource("1_dh7te")
+track_name = &"Right"
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Right" unique_id=85950437]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+mesh = SubResource("BoxMesh_lne8j")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Right" unique_id=1220612369]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+shape = SubResource("BoxShape3D_bpcae")
+
+[node name="GPUParticles3D" type="GPUParticles3D" parent="Right" unique_id=1862501501]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 0, 0, 0)
+emitting = false
+amount = 16
+lifetime = 0.34
+one_shot = true
+explosiveness = 1.0
+process_material = SubResource("ParticleProcessMaterial_pab16")
+draw_pass_1 = SubResource("PlaneMesh_a5flf")
+
+[node name="RRight" type="Area3D" parent="." unique_id=579582422]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 0)
+script = ExtResource("1_dh7te")
+track_name = &"RRight"
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="RRight" unique_id=1638798116]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+mesh = SubResource("BoxMesh_lne8j")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RRight" unique_id=1897494799]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+shape = SubResource("BoxShape3D_bpcae")
+
+[node name="GPUParticles3D" type="GPUParticles3D" parent="RRight" unique_id=871812693]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 0, 0, 0)
+emitting = false
+amount = 16
+lifetime = 0.34
+one_shot = true
+explosiveness = 1.0
+process_material = SubResource("ParticleProcessMaterial_pab16")
+draw_pass_1 = SubResource("PlaneMesh_a5flf")
+
+[node name="Control" type="Control" parent="." unique_id=854510939]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Control" unique_id=189848097]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -758.0
+offset_top = -250.0
+offset_right = 758.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_top = 200
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Control/MarginContainer" unique_id=567847682]
+layout_mode = 2
+
+[node name="LLeft" type="Button" parent="Control/MarginContainer/HBoxContainer" unique_id=1699101660]
+custom_minimum_size = Vector2(300, 500)
+layout_mode = 2
+
+[node name="Left" type="Button" parent="Control/MarginContainer/HBoxContainer" unique_id=273797536]
+custom_minimum_size = Vector2(300, 500)
+layout_mode = 2
+
+[node name="Main" type="Button" parent="Control/MarginContainer/HBoxContainer" unique_id=1610725162]
+custom_minimum_size = Vector2(300, 500)
+layout_mode = 2
+
+[node name="Right" type="Button" parent="Control/MarginContainer/HBoxContainer" unique_id=328849738]
+custom_minimum_size = Vector2(300, 500)
+layout_mode = 2
+
+[node name="RRight" type="Button" parent="Control/MarginContainer/HBoxContainer" unique_id=131754083]
+custom_minimum_size = Vector2(300, 500)
+layout_mode = 2
+
+[node name="HandOverlay" type="Control" parent="Control" unique_id=1830299118]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_evcr4")
+
+[connection signal="button_down" from="Control/MarginContainer/HBoxContainer/LLeft" to="LLeft" method="_button_press"]
+[connection signal="button_down" from="Control/MarginContainer/HBoxContainer/Left" to="Left" method="_button_press"]
+[connection signal="button_down" from="Control/MarginContainer/HBoxContainer/Main" to="Main" method="_button_press"]
+[connection signal="button_down" from="Control/MarginContainer/HBoxContainer/Right" to="Right" method="_button_press"]
+[connection signal="button_down" from="Control/MarginContainer/HBoxContainer/RRight" to="RRight" method="_button_press"]

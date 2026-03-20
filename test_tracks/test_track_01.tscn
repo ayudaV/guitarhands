@@ -1,39 +1,77 @@
 [gd_scene format=3 uid="uid://7u8dgyhu41mj"]
 
-[ext_resource type="PackedScene" uid="uid://b24xsgq76t3gh" path="res://models/track_mesh.tscn" id="1_dleft"]
+[ext_resource type="PackedScene" uid="uid://b24xsgq76t3gh" path="res://models/track_mesh/track_mesh.tscn" id="1_dleft"]
 [ext_resource type="Script" uid="uid://jm5ope45tgf" path="res://test_tracks/test_track_01.gd" id="1_moq07"]
-[ext_resource type="PackedScene" uid="uid://dy2kq360o466m" path="res://models/track_follower.tscn" id="2_btg86"]
+[ext_resource type="PackedScene" uid="uid://dy2kq360o466m" path="res://models/track_follower/track_follower.tscn" id="2_btg86"]
 [ext_resource type="Material" uid="uid://dwhw262c5pnlx" path="res://resources/materials/green_button.tres" id="2_n4us7"]
 [ext_resource type="AudioStream" uid="uid://b7kvu4aquobxr" path="res://resources/musics/Show_Ado.wav" id="3_bqdop"]
-[ext_resource type="PackedScene" uid="uid://blx3tvfaejatq" path="res://models/Button.tscn" id="3_dqc6e"]
+[ext_resource type="PackedScene" uid="uid://blx3tvfaejatq" path="res://models/button/Button.tscn" id="3_dqc6e"]
 [ext_resource type="Material" uid="uid://cc18bhleyk32q" path="res://resources/materials/red_button.tres" id="3_pdl72"]
 [ext_resource type="Material" uid="uid://bvdanx5yyboa2" path="res://resources/materials/yellow_button.tres" id="4_ni4gc"]
 [ext_resource type="Material" uid="uid://cv75kf4t3a0ul" path="res://resources/materials/blue_button.tres" id="5_wsk6i"]
 [ext_resource type="Material" uid="uid://cgprxs42rtjwv" path="res://resources/materials/orange_button.tres" id="6_df1rt"]
+[ext_resource type="PackedScene" uid="uid://lvkbbv2xlwrv" path="res://ui/debug/webcam_dashboard.tscn" id="12_df1rt"]
+[ext_resource type="Script" uid="uid://dl102r3c2873c" path="res://test_tracks/file_loader.gd" id="12_m82os"]
+[ext_resource type="Script" uid="uid://dfqcn1cvoa0sb" path="res://test_tracks/file_writer.gd" id="13_m82os"]
 
 [sub_resource type="Curve3D" id="Curve3D_btg86"]
 _data = {
-"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0, 0, -3.0895061, 0.30775642, 1.3012631, 3.0895061, -0.30775642, -1.3012631, 8, 0, 0, -3.9028301, 0.35020185, -1.3747892, 3.9028301, -0.35020185, 1.3747892, 16, 0, 0, -2.5918198, -0.99133873, -1.6715794, 2.5918198, 0.99133873, 1.6715794, 24, 0, 8, -2.4437332, -0.0017776489, 2.3489413, 2.4437332, 0.0017776489, -2.3489413, 32, 0, 8, -3.17033, -0.0025978088, -1.4187822, 3.17033, 0.0025978088, 1.4187822, 40, 0, 8, -2.152977, -0.0016365051, 2.2602692, 2.152977, 0.0016365051, -2.2602692, 48, 0, 6, -4.331768, -0.003364563, 1.2755259, 4.331768, 0.003364563, -1.2755259, 56, 0, 0, 0, 0, 0, 0, 0, 0, 64, 0, 0, 0, 0, 0, 0, 0, 0, 450, 0, 0),
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0, 0, -3.09, 0, 1.301, 3.09, 0, -1.301, 16, 0, 0, -3.903, 0, -1.375, 3.903, 0, 1.375, 32, 0, 0, -2.592, 0, -1.672, 2.592, 0, 1.672, 48, 0, 8, -2.444, 0, 2.349, 2.444, 0, -2.349, 64, 0, 8, -3.17, 0, -1.419, 3.17, 0, 1.419, 80, 0, 8, -2.153, 0, 2.26, 2.153, 0, -2.26, 96, 0, 6, -3.193, 0, 0.894, 3.193, 0, -0.894, 112, 0, 0, -3.345, 0, -0.189, 3.345, 0, 0.189, 128, 0, 0, 0, 0, 0, 0, 0, 0, 1800, 0, 0),
 "tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 }
 point_count = 10
 
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_wsk6i"]
+sky_top_color = Color(0, 0, 0, 1)
+sky_horizon_color = Color(0.30588236, 0.10980392, 0.29803923, 1)
+ground_bottom_color = Color(0, 0, 0, 1)
+ground_horizon_color = Color(0.30675837, 0.10945446, 0.29615903, 1)
+energy_multiplier = 13.97
+
+[sub_resource type="Sky" id="Sky_dj6ci"]
+sky_material = SubResource("ProceduralSkyMaterial_wsk6i")
+
+[sub_resource type="Environment" id="Environment_df1rt"]
+background_mode = 2
+sky = SubResource("Sky_dj6ci")
+ambient_light_color = Color(1, 1, 1, 1)
+ambient_light_energy = 16.0
+
 [node name="TestTrack01" type="Node3D" unique_id=1100975494]
 script = ExtResource("1_moq07")
-button_scene = ExtResource("3_dqc6e")
-save_loc = &"user://save_game.dat"
-track_materials = Array[Material]([ExtResource("2_n4us7"), ExtResource("3_pdl72"), ExtResource("4_ni4gc"), ExtResource("5_wsk6i"), ExtResource("6_df1rt")])
+speed_multiplier = 4.0
+bpm = 132
+
+[node name="WebcamDashboard" parent="." unique_id=232856454 instance=ExtResource("12_df1rt")]
 
 [node name="Track" parent="." unique_id=630540959 instance=ExtResource("1_dleft")]
 curve = SubResource("Curve3D_btg86")
 
-[node name="TrackFollower" parent="Track" unique_id=883199981 instance=ExtResource("2_btg86")]
-transform = Transform3D(-0.25615373, -0.058453176, -0.9648618, 0, 0.99816084, -0.06047098, 0.96663165, -0.01548987, -0.25568473, 0, 0, 0)
+[node name="TrackFollower" parent="Track" unique_id=1339076220 node_paths=PackedStringArray("music") instance=ExtResource("2_btg86")]
+transform = Transform3D(-0.1002584, 0, -0.99487334, 0, 1, 0, 0.9948776, 0, -0.10025798, 0, 0, 0)
 is_playing = true
-bpm = 132
+track_speed = 8.8
+music = NodePath("../../Music")
 
 [node name="Music" type="AudioStreamPlayer" parent="." unique_id=859611046]
 stream = ExtResource("3_bqdop")
-autoplay = true
 
-[connection signal="finished" from="Music" to="." method="_on_music_finished"]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1901463993]
+environment = SubResource("Environment_df1rt")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="WorldEnvironment" unique_id=141662036]
+transform = Transform3D(0.05589118, 0, 0.99843687, 0, 1, 0, -0.99843687, 0, 0.05589118, 0, 0, 1.682435)
+
+[node name="FileLoader" type="Node" parent="." unique_id=1703558548 node_paths=PackedStringArray("track")]
+script = ExtResource("12_m82os")
+button_scene = ExtResource("3_dqc6e")
+track_materials = Array[Material]([ExtResource("2_n4us7"), ExtResource("3_pdl72"), ExtResource("4_ni4gc"), ExtResource("5_wsk6i"), ExtResource("6_df1rt")])
+track = NodePath("../Track")
+track_speed = 8.8
+
+[node name="FileWriter" type="Node" parent="." unique_id=503321538 node_paths=PackedStringArray("music")]
+script = ExtResource("13_m82os")
+music = NodePath("../Music")
+track_speed = 8.8
+
+[connection signal="finished" from="Music" to="FileWriter" method="_on_music_finished"]

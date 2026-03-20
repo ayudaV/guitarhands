@@ -1,0 +1,32 @@
+[gd_scene format=3 uid="uid://nsxm57dhhl51"]
+
+[ext_resource type="PackedScene" uid="uid://dfq0hvf8487y1" path="res://models/spaceship/spaceship.glb" id="1_hya0t"]
+[ext_resource type="Script" uid="uid://qujhpi2tk6bu" path="res://models/spaceship/spaceship.gd" id="2_shipctrl"]
+[ext_resource type="Script" uid="uid://c7lr4n4cwii4l" path="res://models/spaceship/hand_overlay.gd" id="3_4ny6j"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_hya0t"]
+radius = 0.16699219
+height = 0.5280762
+
+[node name="Spaceship" type="CharacterBody3D" unique_id=1728781178]
+collision_layer = 0
+collision_mask = 0
+script = ExtResource("2_shipctrl")
+
+[node name="spaceship" parent="." unique_id=1253110065 instance=ExtResource("1_hya0t")]
+transform = Transform3D(-1.445, 0, -2.1818894e-07, 0, 1.445, 0, 2.1818894e-07, 0, -1.445, 0, 0.2, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=784115799]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 6.2429617e-10, 0.014282227)
+shape = SubResource("CapsuleShape3D_hya0t")
+
+[node name="HandOverlay" type="Control" parent="." unique_id=11076802]
+unique_name_in_owner = true
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("3_4ny6j")

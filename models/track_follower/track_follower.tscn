@@ -1,17 +1,8 @@
 [gd_scene format=3 uid="uid://dy2kq360o466m"]
 
-[ext_resource type="Script" uid="uid://jctaivltesnk" path="res://models/track_follower.gd" id="1_bpcae"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_m2y3f"]
-transparency = 1
-albedo_color = Color(0.537255, 1, 1, 0.0901961)
-
-[sub_resource type="BoxMesh" id="BoxMesh_lne8j"]
-material = SubResource("StandardMaterial3D_m2y3f")
-size = Vector3(0.1, 0.1, 1)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_bpcae"]
-size = Vector3(0.1, 0.1, 1)
+[ext_resource type="Script" uid="uid://jctaivltesnk" path="res://models/track_follower/track_follower.gd" id="1_bpcae"]
+[ext_resource type="PackedScene" uid="uid://nsxm57dhhl51" path="res://models/spaceship/spaceship.tscn" id="2_14ibh"]
+[ext_resource type="PackedScene" uid="uid://c125j42emxdbg" path="res://models/guitar_hitbox/hitbox.tscn" id="2_nsg67"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_b2826"]
 transparency = 1
@@ -21,73 +12,21 @@ albedo_color = Color(1, 0.577597, 0.364079, 0.215686)
 material = SubResource("StandardMaterial3D_b2826")
 size = Vector3(0.1, 0.1, 1)
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_bpcae"]
+size = Vector3(0.01, 0.5, 1)
+
 [node name="TrackFollower" type="PathFollow3D" unique_id=1339076220]
 script = ExtResource("1_bpcae")
+hitbox_scene = ExtResource("2_nsg67")
+spaceship_scene = ExtResource("2_14ibh")
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=764337971]
 transform = Transform3D(1, 0, 0, 0, 0.8660254, 0.5, 0, -0.5, 0.8660254, 0, 2, 1)
 current = true
 fov = 90.0
 
-[node name="Hitbox" type="Node3D" parent="." unique_id=815839785]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, 0)
-
-[node name="Main" type="Area3D" parent="Hitbox" unique_id=178370531]
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Hitbox/Main" unique_id=707838880]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
-mesh = SubResource("BoxMesh_lne8j")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Hitbox/Main" unique_id=1823985049]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
-shape = SubResource("BoxShape3D_bpcae")
-
-[node name="Right" type="Area3D" parent="Hitbox" unique_id=1067319312]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Hitbox/Right" unique_id=1455503786]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
-mesh = SubResource("BoxMesh_lne8j")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Hitbox/Right" unique_id=1788749590]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
-shape = SubResource("BoxShape3D_bpcae")
-
-[node name="RRight" type="Area3D" parent="Hitbox" unique_id=812283139]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Hitbox/RRight" unique_id=904208154]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
-mesh = SubResource("BoxMesh_lne8j")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Hitbox/RRight" unique_id=1155795010]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
-shape = SubResource("BoxShape3D_bpcae")
-
-[node name="Left" type="Area3D" parent="Hitbox" unique_id=580277743]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Hitbox/Left" unique_id=61398975]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
-mesh = SubResource("BoxMesh_lne8j")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Hitbox/Left" unique_id=631984161]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
-shape = SubResource("BoxShape3D_bpcae")
-
-[node name="LLeft" type="Area3D" parent="Hitbox" unique_id=694837457]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Hitbox/LLeft" unique_id=2106853307]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
-mesh = SubResource("BoxMesh_lne8j")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Hitbox/LLeft" unique_id=662813620]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
-shape = SubResource("BoxShape3D_bpcae")
-
 [node name="Hurtbox" type="Node3D" parent="." unique_id=867518882]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, 0.2)
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, 0.5)
 
 [node name="Main" type="Area3D" parent="Hurtbox" unique_id=650636403]
 
@@ -144,3 +83,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
 shape = SubResource("BoxShape3D_bpcae")
 
 [connection signal="body_entered" from="Hurtbox/Main" to="." method="_on_hurtbox_body_entered"]
+[connection signal="body_entered" from="Hurtbox/Right" to="." method="_on_hurtbox_body_entered"]
+[connection signal="body_entered" from="Hurtbox/RRight" to="." method="_on_hurtbox_body_entered"]
+[connection signal="body_entered" from="Hurtbox/Left" to="." method="_on_hurtbox_body_entered"]
+[connection signal="body_entered" from="Hurtbox/LLeft" to="." method="_on_hurtbox_body_entered"]
