@@ -1,7 +1,7 @@
 class_name FileWriter extends Node
 
 @export var music : AudioStreamPlayer
-@export var save_loc : StringName = "user://save_game.dat"
+@export var save_loc : StringName = "user://save_game.res"
 @export var record_mode: String = "overwrite"
 @export var track_speed := 0.0
 var new_buttons: Array[Array] = []

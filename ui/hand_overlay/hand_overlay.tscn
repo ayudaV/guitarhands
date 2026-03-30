@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://d38hmqod6y03e"]
+
+[ext_resource type="Script" uid="uid://co3nhvkmt6dg0" path="res://ui/hand_overlay/hand_overlay.gd" id="1_tmcc0"]
+
+[node name="HandOverlay" type="Control" unique_id=1018502388]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_tmcc0")

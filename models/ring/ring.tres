@@ -2,6 +2,8 @@
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qtp35"]
 albedo_color = Color(0.93758905, 0.61987215, 0, 1)
+emission_enabled = true
+emission = Color(0.7114882, 0.6235216, 1.92523e-07, 1)
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_lp2nw"]
 _surfaces = [{

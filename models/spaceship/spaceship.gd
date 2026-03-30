@@ -46,3 +46,7 @@ func _get_turn_rotation() -> float:
 
 	var first_dict: Dictionary = first
 	return float(first_dict.get("rotation_rad", 0.0))
+
+
+func _on_area_3d_body_entered(body: Node3D) -> void:
+	pass # Replace with function body.

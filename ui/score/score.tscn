@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bmxwuni4qtp5q"]
 
-[ext_resource type="Theme" uid="uid://rwi2uqc15552" path="res://resources/themes/ui_information.tres" id="1_v55ug"]
+[ext_resource type="Theme" uid="uid://rwi2uqc15552" path="res://resources/themes/ui_theme.tres" id="1_v55ug"]
 [ext_resource type="Script" uid="uid://cefcd5fgkswmk" path="res://ui/score/score_update.gd" id="2_t4yyy"]
 
 [node name="Score" type="Control" unique_id=1860268720]

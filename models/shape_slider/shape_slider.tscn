@@ -1,0 +1,82 @@
+[gd_scene format=3 uid="uid://ddqc0bp6g57xt"]
+
+[ext_resource type="Theme" uid="uid://ccukrq0j1ung5" path="res://resources/themes/shapes_mode_theme.tres" id="1_2jwg1"]
+[ext_resource type="Script" uid="uid://clnyyt65hd2ni" path="res://models/shape_slider/shape_slider.gd" id="1_u18s4"]
+[ext_resource type="Texture2D" uid="uid://ct4rvf0h6ws3s" path="res://resources/icons/shapes_circle_guitarhands.png" id="2_qv6ui"]
+[ext_resource type="AudioStream" uid="uid://d8le7n1uvteh" path="res://resources/sounds/Alchemist HiHat 7.wav" id="3_hyggs"]
+
+[sub_resource type="Curve2D" id="Curve2D_3ylq0"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_sprfh"]
+radius = 40.0
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_a4lpf"]
+width = 5
+
+[sub_resource type="CurveTexture" id="CurveTexture_nsg67"]
+
+[sub_resource type="Curve" id="Curve_njjha"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_xwpya"]
+curve = SubResource("Curve_njjha")
+
+[sub_resource type="Curve" id="Curve_rbvij"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_a5flf"]
+curve = SubResource("Curve_rbvij")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_yrga7"]
+direction = Vector3(0, 0, 0)
+spread = 180.0
+initial_velocity_min = 150.0
+initial_velocity_max = 200.0
+gravity = Vector3(0, 98, 0)
+scale_curve = SubResource("CurveTexture_a5flf")
+alpha_curve = SubResource("CurveTexture_nsg67")
+emission_curve = SubResource("CurveTexture_xwpya")
+
+[node name="ShapeSlider" type="Path2D" unique_id=1461282306]
+curve = SubResource("Curve2D_3ylq0")
+script = ExtResource("1_u18s4")
+
+[node name="PathFollow2D" type="PathFollow2D" parent="." unique_id=1985958079]
+rotates = false
+loop = false
+
+[node name="ShapeButton" type="StaticBody2D" parent="PathFollow2D" unique_id=258973793]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PathFollow2D/ShapeButton" unique_id=1969380279]
+shape = SubResource("CircleShape2D_sprfh")
+
+[node name="TextureRect" type="TextureRect" parent="PathFollow2D/ShapeButton" unique_id=1412231293]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -40.0
+offset_top = -40.0
+offset_right = 40.0
+offset_bottom = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_2jwg1")
+texture = ExtResource("2_qv6ui")
+
+[node name="GPUParticles" type="GPUParticles2D" parent="PathFollow2D/ShapeButton" unique_id=856158611]
+emitting = false
+amount = 32
+texture = SubResource("GradientTexture1D_a4lpf")
+lifetime = 0.31
+one_shot = true
+explosiveness = 1.0
+process_material = SubResource("ParticleProcessMaterial_yrga7")
+
+[node name="Release" type="AudioStreamPlayer" parent="PathFollow2D/ShapeButton" unique_id=1039332197]
+stream = ExtResource("3_hyggs")
+
+[connection signal="finished" from="PathFollow2D/ShapeButton/Release" to="." method="_on_release_finished"]

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="GenericResource" format=3 uid="uid://c6r386141vewt"]
+
+[ext_resource type="Script" uid="uid://dydyxvurq7tqs" path="res://models/generic_resource/generic_button.gd" id="1_sspho"]
+[ext_resource type="Script" uid="uid://c4tq8fo524if6" path="res://models/generic_resource/generic_resource.gd" id="2_knney"]
+
+[resource]
+script = ExtResource("2_knney")
+buttons = Array[ExtResource("1_sspho")]([null])
+switch = null
+timestamp = null

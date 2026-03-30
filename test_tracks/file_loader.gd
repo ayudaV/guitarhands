@@ -3,7 +3,7 @@ class_name FileLoader extends Node
 
 
 @export var button_scene : PackedScene
-@export var save_loc : StringName = "user://save_game.dat"
+@export var save_loc : StringName = "user://save_game.res"
 @export var track_materials : Array[Material]
 @export var is_dirty := false
 @export var track : Path3D
@@ -24,14 +24,13 @@ func _load():
 		var file = FileAccess.open(save_loc, FileAccess.READ)
 		buttons = file.get_var()
 		file.close()
-	for child in track.get_children().filter(func(child:Node): return child is Guitar_button):
+	for child in track.get_children().filter(func(child:Node): return child is GuitarButton):
 		track.remove_child(child)
 		
 	for data in buttons:
 		var button_timestamp = data[0]
 		var track_num = data[1]
-		var button_instance:Guitar_button = button_scene.instantiate()
-		print(button_timestamp * track_speed)
+		var button_instance:GuitarButton = button_scene.instantiate()
 		button_instance.progress = button_timestamp * track_speed
 		button_instance.material = track_materials[track_num+2]
 		button_instance.get_node("Body").position.x = track_num

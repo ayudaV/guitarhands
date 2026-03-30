@@ -15,6 +15,7 @@ enum CaptureFitMode {
 var _tips: Array = []
 var _capture_size: Vector2 = Vector2.ONE
 var _pressed_by_hand: Dictionary = {}
+var _pos_by_hand: Dictionary = {}
 
 func _process(delta: float) -> void:
 	var resolution: Vector2 = WebcamSocket.get_capture_resolution()
@@ -56,13 +57,14 @@ func _draw() -> void:
 		var line_color := Color(0.0, 1.0, 0.0, 0.95) if is_pinch else Color(0.0, 0.86, 1.0, 0.95)
 		var point_color := Color(1.0, 0.0, 0.0, 0.95) if is_pinch else Color(1.0, 0.47, 0.0, 0.95)
 
-		draw_line(thumb_pos, index_pos, line_color, 2.0, true)
-		draw_line(thumb_pos, middle_pos, line_color, 2.0, true)
-		draw_line(index_pos, middle_pos, line_color, 2.0, true)
+		draw_line(thumb_pos, index_pos, line_color, 3.0, true)
+		draw_line(thumb_pos, middle_pos, line_color, 3.0, true)
+		draw_line(index_pos, middle_pos, line_color, 3.0, true)
 
-		draw_circle(thumb_pos, 6.0, point_color)
-		draw_circle(index_pos, 6.0, point_color)
-		draw_circle(middle_pos, 6.0, point_color)
+		draw_circle(thumb_pos, 10.0, point_color)
+		draw_circle(index_pos, 10.0, point_color)
+		draw_circle(middle_pos, clamp(20.0 * pinch_threshold_px/pinch_distance_px, 6, 15), point_color)
+										
 
 func _process_clicks() -> void:
 	var seen_hands: Dictionary = {}
@@ -77,18 +79,28 @@ func _process_clicks() -> void:
 		if hand_index < 0:
 			continue
 		seen_hands[hand_index] = true
-
+		var thumb: Dictionary = hand_dict.get("thumb", Dictionary())
 		var index_tip: Dictionary = hand_dict.get("index", Dictionary())
+		
 		if typeof(index_tip) != TYPE_DICTIONARY:
 			continue
-
+			
+		var thumb_pos := _map_capture_to_overlay(Vector2(float(thumb.get("x", 0)), float(thumb.get("y", 0))))
 		var index_pos := _map_capture_to_overlay(Vector2(float(index_tip.get("x", 0)), float(index_tip.get("y", 0))))
 		var pinch_distance_px: float = float(hand_dict.get("pinch_distance_px", 99999.0))
 		var is_pinch := pinch_distance_px <= pinch_threshold_px
 		var was_pinch := bool(_pressed_by_hand.get(hand_index, false))
+		var middle_pos := (thumb_pos + index_pos) * 0.5
 
+		# Emit press when pinch starts
 		if is_pinch and not was_pinch:
-			_emit_click_events(index_pos, hand_index)
+			_emit_click_press(middle_pos, hand_index)
+
+		# Emit release when pinch ends
+		if not is_pinch and was_pinch:
+			_emit_click_release(middle_pos, hand_index)
+
+		_update_mouse_position(middle_pos, hand_index)
 
 		_pressed_by_hand[hand_index] = is_pinch
 
@@ -98,8 +110,9 @@ func _process_clicks() -> void:
 			stale.append(key)
 	for key in stale:
 		_pressed_by_hand.erase(key)
-
-func _emit_click_events(screen_pos: Vector2, hand_index: int) -> void:
+		_pos_by_hand.erase(key)
+		
+func _emit_click_press(screen_pos: Vector2, hand_index: int) -> void:
 	if trigger_mouse_click:
 		var mouse_click := InputEventMouseButton.new()
 		mouse_click.device = hand_index
@@ -109,6 +122,15 @@ func _emit_click_events(screen_pos: Vector2, hand_index: int) -> void:
 		mouse_click.pressed = true
 		Input.parse_input_event(mouse_click)
 
+	if trigger_touch_click:
+		var touch_press := InputEventScreenTouch.new()
+		touch_press.index = hand_index
+		touch_press.position = screen_pos
+		touch_press.pressed = true
+		Input.parse_input_event(touch_press)
+
+func _emit_click_release(screen_pos: Vector2, hand_index: int) -> void:
+	if trigger_mouse_click:
 		var mouse_release := InputEventMouseButton.new()
 		mouse_release.device = hand_index
 		mouse_release.button_index = MOUSE_BUTTON_LEFT
@@ -118,17 +140,19 @@ func _emit_click_events(screen_pos: Vector2, hand_index: int) -> void:
 		Input.parse_input_event(mouse_release)
 
 	if trigger_touch_click:
-		var touch_press := InputEventScreenTouch.new()
-		touch_press.index = hand_index
-		touch_press.position = screen_pos
-		touch_press.pressed = true
-		Input.parse_input_event(touch_press)
-
 		var touch_release := InputEventScreenTouch.new()
 		touch_release.index = hand_index
 		touch_release.position = screen_pos
 		touch_release.pressed = false
 		Input.parse_input_event(touch_release)
+
+func _update_mouse_position(screen_pos: Vector2, hand_index: int) -> void:
+	if _pos_by_hand.get(hand_index, Vector2.ZERO).distance_to(screen_pos) > 10.0:
+		var mouse_motion := InputEventMouseMotion.new()
+		mouse_motion.device = hand_index+1
+		mouse_motion.position = screen_pos
+		_pos_by_hand[hand_index] = screen_pos
+		Input.parse_input_event(mouse_motion)
 
 func _map_capture_to_overlay(capture_pos: Vector2) -> Vector2:
 	var overlay_size: Vector2 = size

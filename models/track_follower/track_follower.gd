@@ -8,6 +8,9 @@ class_name TrackFollower extends PathFollow3D
 @export var hitbox_scene : PackedScene
 @export var spaceship_scene : PackedScene
 @export var shapes_scene : PackedScene
+@export var raycast : RayCast3D
+
+@onready var camera = $Camera3D
 var guitar_hitbox : Node3D
 var spaceship : CharacterBody3D
 var shapes : Control
@@ -15,7 +18,7 @@ var shapes : Control
 func _ready() -> void:
 	guitar_hitbox = hitbox_scene.instantiate()
 	spaceship = spaceship_scene.instantiate()
-	#shapes = shapes_scene.instantiate()
+	shapes = shapes_scene.instantiate()
 
 func _physics_process(delta: float) -> void:
 	if is_playing:
@@ -23,22 +26,38 @@ func _physics_process(delta: float) -> void:
 	
 	if not Engine.is_editor_hint():
 		if Input.is_action_just_pressed("Guitar"):
+			clear()
 			mode = "guitar"
 			add_child(guitar_hitbox)
-			remove_child(spaceship)
-			#remove_child(shapes)
 		elif Input.is_action_just_pressed("Spaceship"):
+			clear()
 			mode = "spaceship"
 			add_child(spaceship)
-			remove_child(guitar_hitbox)
-			#remove_child(shapes)
 		elif Input.is_action_just_pressed("Shapes"):
+			clear()
 			mode = "shapes"
-			#add_child(shapes)
-			remove_child(spaceship)
-			remove_child(guitar_hitbox)
+			add_child(shapes)
 
+func clear():
+	match mode:
+		"guitar": remove_child(guitar_hitbox)
+		"spaceship": remove_child(spaceship)
+		"shapes": remove_child(shapes)
 
 func _on_hurtbox_body_entered(body: Node3D) -> void:
 	Globals.current_score -= 1
 	body.queue_free()
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion:
+		var mouse_pos : Vector2 = event.position
+		var rayStart : Vector3 = camera.position
+		var direction : Vector3 = camera.project_local_ray_normal(mouse_pos)
+
+		var plane := Plane(Vector3.BACK)
+
+		var intersection = plane.intersects_ray(rayStart,direction)
+
+		if intersection:
+			Globals.aim_position[event.device] = intersection
+		

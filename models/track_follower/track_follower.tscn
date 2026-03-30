@@ -3,87 +3,39 @@
 [ext_resource type="Script" uid="uid://jctaivltesnk" path="res://models/track_follower/track_follower.gd" id="1_bpcae"]
 [ext_resource type="PackedScene" uid="uid://nsxm57dhhl51" path="res://models/spaceship/spaceship.tscn" id="2_14ibh"]
 [ext_resource type="PackedScene" uid="uid://c125j42emxdbg" path="res://models/guitar_hitbox/hitbox.tscn" id="2_nsg67"]
+[ext_resource type="PackedScene" uid="uid://yqfndrolsxve" path="res://models/shapes/shapes.tscn" id="4_a5flf"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_b2826"]
-transparency = 1
-albedo_color = Color(1, 0.577597, 0.364079, 0.215686)
-
-[sub_resource type="BoxMesh" id="BoxMesh_4wpx5"]
-material = SubResource("StandardMaterial3D_b2826")
-size = Vector3(0.1, 0.1, 1)
+[sub_resource type="SphereMesh" id="SphereMesh_a5flf"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_bpcae"]
-size = Vector3(0.01, 0.5, 1)
+size = Vector3(0.01, 0.5, 5)
 
-[node name="TrackFollower" type="PathFollow3D" unique_id=1339076220]
+[node name="TrackFollower" type="PathFollow3D" unique_id=1339076220 node_paths=PackedStringArray("raycast")]
 script = ExtResource("1_bpcae")
 hitbox_scene = ExtResource("2_nsg67")
 spaceship_scene = ExtResource("2_14ibh")
+shapes_scene = ExtResource("4_a5flf")
+raycast = NodePath("Camera3D/RayCast3D")
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=764337971]
 transform = Transform3D(1, 0, 0, 0, 0.8660254, 0.5, 0, -0.5, 0.8660254, 0, 2, 1)
 current = true
 fov = 90.0
 
+[node name="RayCast3D" type="RayCast3D" parent="Camera3D" unique_id=241795082]
+target_position = Vector3(0, 0, -10)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Camera3D/RayCast3D" unique_id=1465386281]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -10)
+mesh = SubResource("SphereMesh_a5flf")
+
 [node name="Hurtbox" type="Node3D" parent="." unique_id=867518882]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, 0.5)
 
 [node name="Main" type="Area3D" parent="Hurtbox" unique_id=650636403]
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Hurtbox/Main" unique_id=366848200]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
-mesh = SubResource("BoxMesh_4wpx5")
-
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Hurtbox/Main" unique_id=1023231602]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
 shape = SubResource("BoxShape3D_bpcae")
 
-[node name="Right" type="Area3D" parent="Hurtbox" unique_id=1410379010]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Hurtbox/Right" unique_id=1801995155]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
-mesh = SubResource("BoxMesh_4wpx5")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Hurtbox/Right" unique_id=1418597712]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
-shape = SubResource("BoxShape3D_bpcae")
-
-[node name="RRight" type="Area3D" parent="Hurtbox" unique_id=387753024]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Hurtbox/RRight" unique_id=169763631]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
-mesh = SubResource("BoxMesh_4wpx5")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Hurtbox/RRight" unique_id=1761018211]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
-shape = SubResource("BoxShape3D_bpcae")
-
-[node name="Left" type="Area3D" parent="Hurtbox" unique_id=533423000]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Hurtbox/Left" unique_id=30810373]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
-mesh = SubResource("BoxMesh_4wpx5")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Hurtbox/Left" unique_id=108630031]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
-shape = SubResource("BoxShape3D_bpcae")
-
-[node name="LLeft" type="Area3D" parent="Hurtbox" unique_id=418974547]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Hurtbox/LLeft" unique_id=209662997]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
-mesh = SubResource("BoxMesh_4wpx5")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Hurtbox/LLeft" unique_id=494595673]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
-shape = SubResource("BoxShape3D_bpcae")
-
 [connection signal="body_entered" from="Hurtbox/Main" to="." method="_on_hurtbox_body_entered"]
-[connection signal="body_entered" from="Hurtbox/Right" to="." method="_on_hurtbox_body_entered"]
-[connection signal="body_entered" from="Hurtbox/RRight" to="." method="_on_hurtbox_body_entered"]
-[connection signal="body_entered" from="Hurtbox/Left" to="." method="_on_hurtbox_body_entered"]
-[connection signal="body_entered" from="Hurtbox/LLeft" to="." method="_on_hurtbox_body_entered"]
