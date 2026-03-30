@@ -28,6 +28,7 @@ class webcam_socket(Node):
 		self._hand_landmarker = self._create_hand_landmarker()
 
 		self._last_result_hand_landmarks = []
+		self._last_result_handedness = []
 		self._last_frame_width = 1
 		self._last_frame_height = 1
 		self._last_image_capture_latency_ms = INVALID_LATENCY_MS
@@ -86,6 +87,79 @@ class webcam_socket(Node):
 			self._last_total_latency_ms = capture_latency_ms + self._last_mediapipe_latency_ms
 
 		self._last_result_hand_landmarks = list(getattr(result, "hand_landmarks", []) or [])
+		self._last_result_handedness = list(getattr(result, "handedness", []) or [])
+
+	def _get_hand_label(self, hand_index: int) -> str:
+		if 0 <= hand_index < len(self._last_result_handedness):
+			hand_handedness = self._last_result_handedness[hand_index]
+			categories = []
+			if hand_handedness is not None:
+				if hasattr(hand_handedness, "categories"):
+					categories = list(getattr(hand_handedness, "categories", []) or [])
+				else:
+					categories = list(hand_handedness or [])
+
+			if len(categories) > 0:
+				first = categories[0]
+				label = str(
+					getattr(first, "category_name", "")
+					or getattr(first, "categoryName", "")
+					or getattr(first, "display_name", "")
+					or getattr(first, "displayName", "")
+				).strip().lower()
+				if label in ("left", "right"):
+					return label
+		return f"hand_{hand_index}"
+
+	def _build_hand_identity_map(self, limit: int) -> dict:
+		identity_map = {}
+		entries = []
+
+		for hand_index, hand_landmarks in enumerate(self._last_result_hand_landmarks):
+			if hand_index >= limit:
+				break
+			if len(hand_landmarks) == 0:
+				continue
+
+			x_pos = float(getattr(hand_landmarks[HandLandmark.WRIST], "x", 0.5)) if len(hand_landmarks) > HandLandmark.WRIST else 0.5
+			entries.append({"hand_index": hand_index, "x": x_pos})
+
+		if len(entries) == 0:
+			return identity_map
+
+		left_idx = None
+		right_idx = None
+		for entry in entries:
+			hand_index = int(entry["hand_index"])
+			label = self._get_hand_label(hand_index)
+			if label == "left" and left_idx is None:
+				left_idx = hand_index
+			elif label == "right" and right_idx is None:
+				right_idx = hand_index
+
+		if left_idx is not None and right_idx is not None and left_idx != right_idx:
+			identity_map[left_idx] = ("left", 0)
+			identity_map[right_idx] = ("right", 1)
+		else:
+			sorted_entries = sorted(entries, key=lambda item: float(item["x"]))
+			identity_map[int(sorted_entries[0]["hand_index"])] = ("left", 0)
+			if len(sorted_entries) > 1:
+				identity_map[int(sorted_entries[1]["hand_index"])] = ("right", 1)
+
+		for entry in entries:
+			hand_index = int(entry["hand_index"])
+			if hand_index in identity_map:
+				continue
+			identity_map[hand_index] = (f"hand_{hand_index}", hand_index + 2)
+
+		return identity_map
+
+	def _get_stable_hand_index(self, hand_label: str, fallback_index: int) -> int:
+		if hand_label == "left":
+			return 0
+		if hand_label == "right":
+			return 1
+		return int(fallback_index + 2)
 
 	def _next_timestamp_ms(self) -> int:
 		now_ms = int(time.monotonic_ns() // 1_000_000)
@@ -194,12 +268,15 @@ class webcam_socket(Node):
 		limit = int(max(0, max_hands))
 		width = max(1, int(self._last_frame_width))
 		height = max(1, int(self._last_frame_height))
+		identity_map = self._build_hand_identity_map(limit)
 
 		for hand_index, hand_landmarks in enumerate(self._last_result_hand_landmarks):
 			if hand_index >= limit:
 				break
 			if len(hand_landmarks) <= HandLandmark.INDEX_FINGER_TIP:
 				continue
+
+			hand_label, stable_hand_index = identity_map.get(hand_index, (f"hand_{hand_index}", hand_index + 2))
 
 			thumb = hand_landmarks[HandLandmark.THUMB_TIP]
 			index = hand_landmarks[HandLandmark.INDEX_FINGER_TIP]
@@ -222,7 +299,9 @@ class webcam_socket(Node):
 			index_dict["y"] = index_y
 
 			hand_dict = Dictionary.new0()
-			hand_dict["hand_index"] = hand_index
+			hand_dict["hand_index"] = stable_hand_index
+			hand_dict["hand_label"] = hand_label
+			hand_dict["detection_index"] = hand_index
 			hand_dict["thumb"] = thumb_dict
 			hand_dict["index"] = index_dict
 			hand_dict["pinch_distance_px"] = pinch_distance_px
@@ -236,12 +315,15 @@ class webcam_socket(Node):
 		limit = int(max(0, max_hands))
 		width = max(1, int(self._last_frame_width))
 		height = max(1, int(self._last_frame_height))
+		identity_map = self._build_hand_identity_map(limit)
 
 		for hand_index, hand_landmarks in enumerate(self._last_result_hand_landmarks):
 			if hand_index >= limit:
 				break
 			if len(hand_landmarks) <= HandLandmark.PINKY_TIP:
 				continue
+
+			hand_label, stable_hand_index = identity_map.get(hand_index, (f"hand_{hand_index}", hand_index + 2))
 
 			thumb = hand_landmarks[HandLandmark.THUMB_TIP]
 			pinky = hand_landmarks[HandLandmark.PINKY_TIP]
@@ -264,7 +346,9 @@ class webcam_socket(Node):
 			pinky_dict["y"] = pinky_y
 
 			hand_dict = Dictionary.new0()
-			hand_dict["hand_index"] = hand_index
+			hand_dict["hand_index"] = stable_hand_index
+			hand_dict["hand_label"] = hand_label
+			hand_dict["detection_index"] = hand_index
 			hand_dict["thumb"] = thumb_dict
 			hand_dict["pinky"] = pinky_dict
 			hand_dict["pinch_distance_px"] = pinch_distance_px
@@ -278,12 +362,15 @@ class webcam_socket(Node):
 		limit = int(max(0, max_hands))
 		width = max(1, int(self._last_frame_width))
 		height = max(1, int(self._last_frame_height))
+		identity_map = self._build_hand_identity_map(limit)
 
 		for hand_index, hand_landmarks in enumerate(self._last_result_hand_landmarks):
 			if hand_index >= limit:
 				break
 			if len(hand_landmarks) <= HandLandmark.PINKY_TIP:
 				continue
+
+			hand_label, stable_hand_index = identity_map.get(hand_index, (f"hand_{hand_index}", hand_index + 2))
 
 			thumb = hand_landmarks[HandLandmark.THUMB_TIP]
 			pinky = hand_landmarks[HandLandmark.PINKY_TIP]
@@ -307,7 +394,9 @@ class webcam_socket(Node):
 			pinky_dict["y"] = pinky_y
 
 			hand_dict = Dictionary.new0()
-			hand_dict["hand_index"] = hand_index
+			hand_dict["hand_index"] = stable_hand_index
+			hand_dict["hand_label"] = hand_label
+			hand_dict["detection_index"] = hand_index
 			hand_dict["thumb"] = thumb_dict
 			hand_dict["pinky"] = pinky_dict
 			hand_dict["rotation_rad"] = rotation_rad

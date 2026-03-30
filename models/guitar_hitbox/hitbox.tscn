@@ -14,9 +14,10 @@ emission_energy_multiplier = 5.6
 material = SubResource("StandardMaterial3D_lewim")
 top_radius = 0.2
 bottom_radius = 0.2
+height = 0.3
 
-[sub_resource type="CylinderShape3D" id="CylinderShape3D_lewim"]
-radius = 0.2
+[sub_resource type="BoxShape3D" id="BoxShape3D_lewim"]
+size = Vector3(0.4, 0.3, 1)
 
 [sub_resource type="CurveTexture" id="CurveTexture_lewim"]
 
@@ -63,6 +64,18 @@ emission_energy_multiplier = 5.6
 material = SubResource("StandardMaterial3D_7f1a7")
 top_radius = 0.2
 bottom_radius = 0.2
+height = 0.3
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lgy8n"]
+transparency = 1
+albedo_color = Color(0, 0.6864975, 0.96719956, 0.39100003)
+emission_enabled = true
+emission_energy_multiplier = 2.0
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_ngoby"]
+material = SubResource("StandardMaterial3D_lgy8n")
+size = Vector2(5, 0.5)
+orientation = 2
 
 [node name="Hitbox" type="Node3D" unique_id=67998447]
 
@@ -71,12 +84,12 @@ script = ExtResource("1_dh7te")
 device = 1
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Main" unique_id=18158953]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
 mesh = SubResource("CylinderMesh_7f1a7")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Main" unique_id=133607719]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
-shape = SubResource("CylinderShape3D_lewim")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Main" unique_id=1944468117]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+shape = SubResource("BoxShape3D_lewim")
 
 [node name="GPUParticles3D" type="GPUParticles3D" parent="Main" unique_id=111968523]
 transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 0, 0, 0)
@@ -96,12 +109,12 @@ script = ExtResource("1_dh7te")
 device = 2
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Secondary" unique_id=1528299680]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
 mesh = SubResource("CylinderMesh_lgy8n")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Secondary" unique_id=289114134]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
-shape = SubResource("CylinderShape3D_lewim")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+shape = SubResource("BoxShape3D_lewim")
 
 [node name="GPUParticles3D" type="GPUParticles3D" parent="Secondary" unique_id=1739260869]
 transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 0, 0, 0)
@@ -127,3 +140,7 @@ grow_vertical = 2
 [node name="HandOverlay" parent="Control" unique_id=1018502388 instance=ExtResource("3_lewim")]
 unique_name_in_owner = true
 layout_mode = 1
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=22169074]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+mesh = SubResource("PlaneMesh_ngoby")

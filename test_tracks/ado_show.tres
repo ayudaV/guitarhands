@@ -5,6 +5,7 @@
 
 [resource]
 script = ExtResource("2_knney")
-buttons = Array[ExtResource("1_sspho")]([null])
-switch = null
+guitar_buttons = null
+switchs = null
 timestamp = null
+buttons = Array[ExtResource("1_sspho")]([])

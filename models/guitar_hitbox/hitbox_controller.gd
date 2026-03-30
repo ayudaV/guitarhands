@@ -5,8 +5,10 @@ extends Area3D
 func _input(event: InputEvent) -> void:
 	if event.device == device:
 		if event is InputEventMouseMotion:
-			position = Globals.aim_position.get(event.device, Vector3.ZERO)
-			print(device, position)
+			global_position = Globals.aim_position.get(event.device, Vector3.ZERO)
+			position.y = 0
+			position.z = 0
+			#print(device, position)
 		if event is InputEventMouseButton:
 			if event.pressed:
 				_button_press()

@@ -5,29 +5,27 @@
 [ext_resource type="PackedScene" uid="uid://c125j42emxdbg" path="res://models/guitar_hitbox/hitbox.tscn" id="2_nsg67"]
 [ext_resource type="PackedScene" uid="uid://yqfndrolsxve" path="res://models/shapes/shapes.tscn" id="4_a5flf"]
 
-[sub_resource type="SphereMesh" id="SphereMesh_a5flf"]
-
 [sub_resource type="BoxShape3D" id="BoxShape3D_bpcae"]
 size = Vector3(0.01, 0.5, 5)
 
-[node name="TrackFollower" type="PathFollow3D" unique_id=1339076220 node_paths=PackedStringArray("raycast")]
+[sub_resource type="SphereMesh" id="SphereMesh_a5flf"]
+radius = 0.1
+height = 0.2
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_a5flf"]
+size = Vector3(7, 5, 0.1)
+
+[node name="TrackFollower" type="PathFollow3D" unique_id=1339076220 node_paths=PackedStringArray("mi")]
 script = ExtResource("1_bpcae")
 hitbox_scene = ExtResource("2_nsg67")
 spaceship_scene = ExtResource("2_14ibh")
 shapes_scene = ExtResource("4_a5flf")
-raycast = NodePath("Camera3D/RayCast3D")
+mi = NodePath("MeshInstance3D")
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=764337971]
 transform = Transform3D(1, 0, 0, 0, 0.8660254, 0.5, 0, -0.5, 0.8660254, 0, 2, 1)
 current = true
 fov = 90.0
-
-[node name="RayCast3D" type="RayCast3D" parent="Camera3D" unique_id=241795082]
-target_position = Vector3(0, 0, -10)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Camera3D/RayCast3D" unique_id=1465386281]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -10)
-mesh = SubResource("SphereMesh_a5flf")
 
 [node name="Hurtbox" type="Node3D" parent="." unique_id=867518882]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, 0.5)
@@ -37,5 +35,16 @@ transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Hurtbox/Main" unique_id=1023231602]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
 shape = SubResource("BoxShape3D_bpcae")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1186859166]
+transform = Transform3D(1, 0, 0, 0, 0.8660254, 0.5, 0, -0.5, 0.8660254, 0, 2, 1)
+visible = false
+mesh = SubResource("SphereMesh_a5flf")
+skeleton = NodePath("../Camera3D")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="." unique_id=1132867939]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" unique_id=1100539253]
+shape = SubResource("BoxShape3D_a5flf")
 
 [connection signal="body_entered" from="Hurtbox/Main" to="." method="_on_hurtbox_body_entered"]

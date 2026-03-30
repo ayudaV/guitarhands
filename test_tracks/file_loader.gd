@@ -31,7 +31,7 @@ func _load():
 		var button_timestamp = data[0]
 		var track_num = data[1]
 		var button_instance:GuitarButton = button_scene.instantiate()
-		button_instance.progress = button_timestamp * track_speed
-		button_instance.material = track_materials[track_num+2]
-		button_instance.get_node("Body").position.x = track_num
+		button_instance.init_data(button_timestamp * track_speed, 
+								  track_num, 
+								  track_materials[track_num+2])
 		track.add_child(button_instance)

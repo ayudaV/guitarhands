@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://blx3tvfaejatq"]
+[gd_scene format=3 uid="uid://debae1681qqu1"]
 
 [ext_resource type="Script" uid="uid://crn087grkw287" path="res://models/button/button.gd" id="1_1oh2i"]
 [ext_resource type="Material" uid="uid://cgprxs42rtjwv" path="res://resources/materials/orange_button.tres" id="2_gfoe3"]

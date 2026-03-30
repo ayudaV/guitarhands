@@ -8,8 +8,7 @@ class_name TrackFollower extends PathFollow3D
 @export var hitbox_scene : PackedScene
 @export var spaceship_scene : PackedScene
 @export var shapes_scene : PackedScene
-@export var raycast : RayCast3D
-
+@export var mi : MeshInstance3D
 @onready var camera = $Camera3D
 var guitar_hitbox : Node3D
 var spaceship : CharacterBody3D
@@ -51,13 +50,11 @@ func _on_hurtbox_body_entered(body: Node3D) -> void:
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
 		var mouse_pos : Vector2 = event.position
-		var rayStart : Vector3 = camera.position
-		var direction : Vector3 = camera.project_local_ray_normal(mouse_pos)
-
-		var plane := Plane(Vector3.BACK)
-
-		var intersection = plane.intersects_ray(rayStart,direction)
-
-		if intersection:
-			Globals.aim_position[event.device] = intersection
-		
+		var rayStart : Vector3 = camera.project_ray_origin(mouse_pos)
+		var ray_end : Vector3 = rayStart + camera.project_ray_normal(mouse_pos) * 10
+		var space_state = get_world_3d().direct_space_state
+		var result = space_state.intersect_ray(PhysicsRayQueryParameters3D.create(rayStart, ray_end))
+		if result:
+			#mi.global_position = result.position
+			Globals.aim_position[event.device] = result.position
+			#print(result.position)
