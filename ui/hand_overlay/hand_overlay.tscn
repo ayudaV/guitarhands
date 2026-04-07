@@ -1,6 +1,8 @@
 [gd_scene format=3 uid="uid://d38hmqod6y03e"]
 
 [ext_resource type="Script" uid="uid://co3nhvkmt6dg0" path="res://ui/hand_overlay/hand_overlay.gd" id="1_tmcc0"]
+[ext_resource type="Script" uid="uid://udciaj4ec32t" path="res://ui/hand_overlay/hand_input_handler.gd" id="2_avrjt"]
+[ext_resource type="Script" uid="uid://dxtn8ly17s6qv" path="res://addons/motion_capture_input/motion_capture_input_device.gd" id="3_7xg3o"]
 
 [node name="HandOverlay" type="Control" unique_id=1018502388]
 layout_mode = 3
@@ -11,3 +13,9 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_tmcc0")
+
+[node name="MotionCaptureInputDevice" type="Node" parent="." unique_id=961802117]
+script = ExtResource("3_7xg3o")
+
+[node name="HandInputHandler" type="Node" parent="." unique_id=1668757769]
+script = ExtResource("2_avrjt")

@@ -1,3 +1,60 @@
 [gd_scene format=3 uid="uid://dmg7582sf8ser"]
 
+[ext_resource type="PackedScene" uid="uid://b24xsgq76t3gh" path="res://models/track_mesh/track_mesh.tscn" id="1_1itv1"]
+[ext_resource type="Script" uid="uid://tu7ryt7ou6bt" path="res://models/track_builder/track_builder.gd" id="1_x7tuk"]
+[ext_resource type="PackedScene" uid="uid://dy2kq360o466m" path="res://models/track_follower/track_follower.tscn" id="2_pxagv"]
+[ext_resource type="AudioStream" uid="uid://b7kvu4aquobxr" path="res://resources/musics/Show_Ado.wav" id="3_x7tuk"]
+[ext_resource type="PackedScene" uid="uid://lvkbbv2xlwrv" path="res://ui/debug/webcam_dashboard.tscn" id="4_3y58e"]
+[ext_resource type="PackedScene" uid="uid://blycg583mx1ip" path="res://models/track_builder/playback_controller/PlaybackController.tscn" id="4_pxagv"]
+[ext_resource type="PackedScene" uid="uid://cmm20e73wfa42" path="res://models/track_builder/file_writer/file_writer.tscn" id="6_drlrx"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_drlrx"]
+sky_top_color = Color(0, 0, 0, 1)
+sky_horizon_color = Color(0.30588236, 0.10980392, 0.29803923, 1)
+ground_bottom_color = Color(0, 0, 0, 1)
+ground_horizon_color = Color(0.30675837, 0.10945446, 0.29615903, 1)
+energy_multiplier = 13.97
+
+[sub_resource type="Sky" id="Sky_dj6ci"]
+sky_material = SubResource("ProceduralSkyMaterial_drlrx")
+
+[sub_resource type="Environment" id="Environment_3y58e"]
+background_mode = 2
+sky = SubResource("Sky_dj6ci")
+ambient_light_color = Color(1, 1, 1, 1)
+ambient_light_energy = 16.0
+
 [node name="TrackBuilder" type="Node3D" unique_id=1068395129]
+script = ExtResource("1_x7tuk")
+speed_multiplier = 4.0
+bpm = 132
+
+[node name="Track" parent="." unique_id=630540959 instance=ExtResource("1_1itv1")]
+
+[node name="TrackFollower" parent="Track" unique_id=1339076220 node_paths=PackedStringArray("music") instance=ExtResource("2_pxagv")]
+transform = Transform3D(-4.370774e-08, 0, -0.9999123, 0, 1, 0, 0.99991655, 0, -4.3707555e-08, 0, 0, 0)
+track_speed = 8.8
+music = NodePath("../../PlaybackController/Music")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1563037313]
+environment = SubResource("Environment_3y58e")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="WorldEnvironment" unique_id=1996162545]
+transform = Transform3D(0.05589118, 0, 0.99843687, 0, 1, 0, -0.99843687, 0, 0.05589118, 0, 0, 1.682435)
+
+[node name="WebcamDashboard" parent="." unique_id=232856454 instance=ExtResource("4_3y58e")]
+
+[node name="PlaybackController" parent="." unique_id=214758575 node_paths=PackedStringArray("track_follower", "music") instance=ExtResource("4_pxagv")]
+track_follower = NodePath("../Track/TrackFollower")
+music = NodePath("Music")
+
+[node name="Music" type="AudioStreamPlayer" parent="PlaybackController" unique_id=439423886]
+stream = ExtResource("3_x7tuk")
+
+[node name="FileWriter" parent="." unique_id=569449936 node_paths=PackedStringArray("music", "track_follower") instance=ExtResource("6_drlrx")]
+music = NodePath("../PlaybackController/Music")
+save_loc = &"user://ado_show.tres"
+record_mode = 1
+bpm = 132
+speed_multiplier = 4.0
+track_follower = NodePath("../Track/TrackFollower")

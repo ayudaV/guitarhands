@@ -1,22 +1,9 @@
 [gd_scene format=3 uid="uid://yqfndrolsxve"]
 
 [ext_resource type="Theme" uid="uid://ccukrq0j1ung5" path="res://resources/themes/shapes_mode_theme.tres" id="1_bj7xr"]
-[ext_resource type="PackedScene" uid="uid://ddqc0bp6g57xt" path="res://models/shape_slider/shape_slider.tscn" id="2_sprfh"]
 [ext_resource type="Script" uid="uid://nxiub32plco5" path="res://models/shapes/area_2d.gd" id="5_sprfh"]
 [ext_resource type="AudioStream" uid="uid://d31bcyrc65wkv" path="res://resources/sounds/Alchemist HiHat 3.wav" id="6_a4lpf"]
 [ext_resource type="PackedScene" uid="uid://d38hmqod6y03e" path="res://ui/hand_overlay/hand_overlay.tscn" id="9_yrga7"]
-
-[sub_resource type="Curve2D" id="Curve2D_sprfh"]
-_data = {
-"points": PackedVector2Array(0, 0, 0, 0, 1520, 740, 0, 0, 0, 0, 400, 740)
-}
-point_count = 2
-
-[sub_resource type="Curve2D" id="Curve2D_a4lpf"]
-_data = {
-"points": PackedVector2Array(0, 0, 0, 0, 400, 340, 0, 0, 0, 0, 1520, 340)
-}
-point_count = 2
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_wa0iy"]
 radius = 40.0
@@ -30,14 +17,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("1_bj7xr")
-
-[node name="ShapeSlider" parent="." unique_id=1199953154 instance=ExtResource("2_sprfh")]
-curve = SubResource("Curve2D_sprfh")
-time_delta = 3.0
-
-[node name="ShapeSlider2" parent="." unique_id=1461282306 instance=ExtResource("2_sprfh")]
-curve = SubResource("Curve2D_a4lpf")
-time_delta = 3.0
 
 [node name="Main" type="Area2D" parent="." unique_id=1913739837]
 collision_layer = 0

@@ -1,9 +1,10 @@
-class_name GenericResource extends Node
-@export var guitar_buttons : Array[GuitarButton]
-@export var sliders : Array[GuitarSlider]
-@export var shape_buttons : Array[ShapesButton]
+class_name GenericResource extends Resource
 
-@export var switchs : Array[GenericSwitch]
+@export var music : AudioStreamWAV
+@export var bpm := 120.0
+@export var speed_multiplier := 1.0
 
-@export var timestamp: float
-@export var button:PackedScene
+@export var guitar_buttons: Array[GuitarButtonData] = []
+@export var guitar_sliders: Array[GuitarSliderData] = []
+@export var shape_buttons: Array[ShapeButtonData] = []
+@export var switchs: Array[SwitchData] = []

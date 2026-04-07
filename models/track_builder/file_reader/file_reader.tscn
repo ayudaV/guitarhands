@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://d1h7ouguc4lhs"]
+
+[ext_resource type="Script" uid="uid://iv8lsisi1y3" path="res://models/track_builder/file_reader/file_reader.gd" id="1_8n4lq"]
+
+[node name="FileReader" type="Node" unique_id=163682158]
+script = ExtResource("1_8n4lq")

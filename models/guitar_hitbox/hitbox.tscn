@@ -4,6 +4,9 @@
 [ext_resource type="AudioStream" uid="uid://d31bcyrc65wkv" path="res://resources/sounds/Alchemist HiHat 3.wav" id="2_lewim"]
 [ext_resource type="PackedScene" uid="uid://d38hmqod6y03e" path="res://ui/hand_overlay/hand_overlay.tscn" id="3_lewim"]
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_lewim"]
+size = Vector3(0.4, 0.3, 1)
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lewim"]
 transparency = 1
 albedo_color = Color(0.47427702, 0.9371796, 1, 0.22900002)
@@ -15,9 +18,6 @@ material = SubResource("StandardMaterial3D_lewim")
 top_radius = 0.2
 bottom_radius = 0.2
 height = 0.3
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_lewim"]
-size = Vector3(0.4, 0.3, 1)
 
 [sub_resource type="CurveTexture" id="CurveTexture_lewim"]
 
@@ -83,13 +83,13 @@ orientation = 2
 script = ExtResource("1_dh7te")
 device = 1
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Main" unique_id=18158953]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
-mesh = SubResource("CylinderMesh_7f1a7")
-
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Main" unique_id=1944468117]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
 shape = SubResource("BoxShape3D_lewim")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Main" unique_id=18158953]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+mesh = SubResource("CylinderMesh_7f1a7")
 
 [node name="GPUParticles3D" type="GPUParticles3D" parent="Main" unique_id=111968523]
 transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 0, 0, 0)

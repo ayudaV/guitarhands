@@ -1,0 +1,1 @@
+class_name GuitarSlider extends PathFollow3D

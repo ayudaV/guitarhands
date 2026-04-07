@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://bcvjse4hysyou"]
+
+[ext_resource type="PackedScene" uid="uid://b24xsgq76t3gh" path="res://models/track_mesh/track_mesh.tscn" id="1_track"]
+[ext_resource type="PackedScene" uid="uid://dy2kq360o466m" path="res://models/track_follower/track_follower.tscn" id="2_follower"]
+[ext_resource type="Script" uid="uid://iv8lsisi1y3" path="res://models/track_builder/file_reader/file_reader.gd" id="3_reader"]
+
+[node name="TestTrackReader" type="Node3D" unique_id=949278441]
+
+[node name="Track" parent="." unique_id=1008178133 instance=ExtResource("1_track")]
+
+[node name="TrackFollower" parent="Track" unique_id=432540160 node_paths=PackedStringArray("music") instance=ExtResource("2_follower")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0, 0)
+music = NodePath("../../Music")
+
+[node name="Music" type="AudioStreamPlayer" parent="." unique_id=1707835360]
+
+[node name="ShapeLayer" type="CanvasLayer" parent="." unique_id=837345048]
+
+[node name="ShapeRoot" type="Node2D" parent="ShapeLayer" unique_id=896291358]
+
+[node name="FileReader" type="Node" parent="." unique_id=614532003 node_paths=PackedStringArray("track", "music", "track_follower", "shape_root")]
+script = ExtResource("3_reader")
+track = NodePath("../Track")
+music = NodePath("../Music")
+track_follower = NodePath("../Track/TrackFollower")
+shape_root = NodePath("../ShapeLayer/ShapeRoot")

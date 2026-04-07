@@ -1,17 +1,30 @@
 extends Area3D
 
 @export var device := -1
+@export var pointer_id := -1
+
+func _target_pointer_id() -> int:
+	if pointer_id >= 0:
+		return int(pointer_id)
+	if device >= 0:
+		return int(max(0, device - 1))
+	return -1
 
 func _input(event: InputEvent) -> void:
-	if event.device == device:
-		if event is InputEventMouseMotion:
-			global_position = Globals.aim_position.get(event.device, Vector3.ZERO)
-			position.y = 0
-			position.z = 0
-			#print(device, position)
-		if event is InputEventMouseButton:
-			if event.pressed:
-				_button_press()
+	var target_id: int = _target_pointer_id()
+	if event is InputEventScreenDrag:
+		var drag_event: InputEventScreenDrag = event
+		if target_id >= 0 and drag_event.index != target_id:
+			return
+		position.x = 5 * drag_event.position.x / 1920 - 2.5
+		position.y = 0
+		position.z = 0
+	elif event is InputEventScreenTouch:
+		var touch_event: InputEventScreenTouch = event
+		if target_id >= 0 and touch_event.index != target_id:
+			return
+		if touch_event.pressed:
+			_button_press()
 
 func _button_press():
 	var buttons:Array[Node3D] = get_overlapping_bodies().filter(func(node:Node3D): return node.is_in_group("Button"))

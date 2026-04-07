@@ -2,9 +2,14 @@ class_name ShapesButton extends Path2D
 
 @export var time_delta := 1.0
 @export var moving := false
+@export var timestamp : float
 @onready var path_follow = $PathFollow2D
 var enable = true
 
+func _init(timestamp:float, time_delta:float) -> void:
+	timestamp = timestamp
+	time_delta = time_delta
+	
 func _process(delta: float) -> void:
 	if moving:
 		path_follow.progress_ratio += delta * 1 / time_delta

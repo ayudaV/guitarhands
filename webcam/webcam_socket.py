@@ -28,7 +28,7 @@ class webcam_socket(Node):
 		self._hand_landmarker = self._create_hand_landmarker()
 
 		self._last_result_hand_landmarks = []
-		self._last_result_handedness = []
+		self._last_result_timestamp_ms = -1
 		self._last_frame_width = 1
 		self._last_frame_height = 1
 		self._last_image_capture_latency_ms = INVALID_LATENCY_MS
@@ -37,6 +37,7 @@ class webcam_socket(Node):
 		self._pending_detection_start = {}
 		self._pending_capture_latency_ms = {}
 		self._last_timestamp_ms = 0
+		self._stable_hand_positions = {}
 
 	def _exit_tree(self) -> None:
 		if getattr(self, "cap", None) is not None and self.cap.isOpened():
@@ -87,79 +88,75 @@ class webcam_socket(Node):
 			self._last_total_latency_ms = capture_latency_ms + self._last_mediapipe_latency_ms
 
 		self._last_result_hand_landmarks = list(getattr(result, "hand_landmarks", []) or [])
-		self._last_result_handedness = list(getattr(result, "handedness", []) or [])
-
-	def _get_hand_label(self, hand_index: int) -> str:
-		if 0 <= hand_index < len(self._last_result_handedness):
-			hand_handedness = self._last_result_handedness[hand_index]
-			categories = []
-			if hand_handedness is not None:
-				if hasattr(hand_handedness, "categories"):
-					categories = list(getattr(hand_handedness, "categories", []) or [])
-				else:
-					categories = list(hand_handedness or [])
-
-			if len(categories) > 0:
-				first = categories[0]
-				label = str(
-					getattr(first, "category_name", "")
-					or getattr(first, "categoryName", "")
-					or getattr(first, "display_name", "")
-					or getattr(first, "displayName", "")
-				).strip().lower()
-				if label in ("left", "right"):
-					return label
-		return f"hand_{hand_index}"
+		self._last_result_timestamp_ms = int(timestamp_ms)
 
 	def _build_hand_identity_map(self, limit: int) -> dict:
 		identity_map = {}
 		entries = []
 
-		for hand_index, hand_landmarks in enumerate(self._last_result_hand_landmarks):
-			if hand_index >= limit:
+		for raw_index, hand_landmarks in enumerate(self._last_result_hand_landmarks):
+			if raw_index >= limit:
 				break
 			if len(hand_landmarks) == 0:
 				continue
 
-			x_pos = float(getattr(hand_landmarks[HandLandmark.WRIST], "x", 0.5)) if len(hand_landmarks) > HandLandmark.WRIST else 0.5
-			entries.append({"hand_index": hand_index, "x": x_pos})
+			if len(hand_landmarks) > HandLandmark.WRIST:
+				anchor = hand_landmarks[HandLandmark.WRIST]
+				x_pos = float(getattr(anchor, "x", 0.5))
+				y_pos = float(getattr(anchor, "y", 0.5))
+			else:
+				x_pos = 0.5
+				y_pos = 0.5
+
+			entries.append({"raw_index": raw_index, "x": x_pos, "y": y_pos})
 
 		if len(entries) == 0:
+			self._stable_hand_positions = {}
 			return identity_map
 
-		left_idx = None
-		right_idx = None
-		for entry in entries:
-			hand_index = int(entry["hand_index"])
-			label = self._get_hand_label(hand_index)
-			if label == "left" and left_idx is None:
-				left_idx = hand_index
-			elif label == "right" and right_idx is None:
-				right_idx = hand_index
-
-		if left_idx is not None and right_idx is not None and left_idx != right_idx:
-			identity_map[left_idx] = ("left", 0)
-			identity_map[right_idx] = ("right", 1)
-		else:
-			sorted_entries = sorted(entries, key=lambda item: float(item["x"]))
-			identity_map[int(sorted_entries[0]["hand_index"])] = ("left", 0)
-			if len(sorted_entries) > 1:
-				identity_map[int(sorted_entries[1]["hand_index"])] = ("right", 1)
+		previous_positions = dict(getattr(self, "_stable_hand_positions", {}) or {})
+		assigned_raw_indices = set()
+		assigned_slots = set()
+		candidate_pairs = []
 
 		for entry in entries:
-			hand_index = int(entry["hand_index"])
-			if hand_index in identity_map:
+			for slot_index, previous_pos in previous_positions.items():
+				if previous_pos is None:
+					continue
+				prev_x = float(previous_pos[0])
+				prev_y = float(previous_pos[1])
+				dx = float(entry["x"] - prev_x)
+				dy = float(entry["y"] - prev_y)
+				candidate_pairs.append((dx * dx + dy * dy, int(entry["raw_index"]), int(slot_index)))
+
+		for _, raw_index, slot_index in sorted(candidate_pairs, key=lambda item: item[0]):
+			if raw_index in assigned_raw_indices or slot_index in assigned_slots:
 				continue
-			identity_map[hand_index] = (f"hand_{hand_index}", hand_index + 2)
+			identity_map[raw_index] = int(slot_index)
+			assigned_raw_indices.add(raw_index)
+			assigned_slots.add(int(slot_index))
+
+		remaining_entries = [entry for entry in entries if int(entry["raw_index"]) not in assigned_raw_indices]
+		remaining_entries.sort(key=lambda entry: float(entry["x"]))
+		available_slots = [slot_index for slot_index in range(int(max(0, self.max_hands))) if slot_index not in assigned_slots]
+
+		for entry, slot_index in zip(remaining_entries, available_slots):
+			raw_index = int(entry["raw_index"])
+			identity_map[raw_index] = int(slot_index)
+			assigned_raw_indices.add(raw_index)
+			assigned_slots.add(int(slot_index))
+
+		new_positions = {}
+		for entry in entries:
+			raw_index = int(entry["raw_index"])
+			slot_index = identity_map.get(raw_index)
+			if slot_index is None:
+				continue
+			new_positions[int(slot_index)] = (float(entry["x"]), float(entry["y"]))
+
+		self._stable_hand_positions = new_positions
 
 		return identity_map
-
-	def _get_stable_hand_index(self, hand_label: str, fallback_index: int) -> int:
-		if hand_label == "left":
-			return 0
-		if hand_label == "right":
-			return 1
-		return int(fallback_index + 2)
 
 	def _next_timestamp_ms(self) -> int:
 		now_ms = int(time.monotonic_ns() // 1_000_000)
@@ -269,14 +266,15 @@ class webcam_socket(Node):
 		width = max(1, int(self._last_frame_width))
 		height = max(1, int(self._last_frame_height))
 		identity_map = self._build_hand_identity_map(limit)
+		ordered_tips = []
 
-		for hand_index, hand_landmarks in enumerate(self._last_result_hand_landmarks):
-			if hand_index >= limit:
+		for raw_index, hand_landmarks in enumerate(self._last_result_hand_landmarks):
+			if raw_index >= limit:
 				break
 			if len(hand_landmarks) <= HandLandmark.INDEX_FINGER_TIP:
 				continue
 
-			hand_label, stable_hand_index = identity_map.get(hand_index, (f"hand_{hand_index}", hand_index + 2))
+			stable_hand_index = int(identity_map.get(raw_index, raw_index))
 
 			thumb = hand_landmarks[HandLandmark.THUMB_TIP]
 			index = hand_landmarks[HandLandmark.INDEX_FINGER_TIP]
@@ -300,12 +298,14 @@ class webcam_socket(Node):
 
 			hand_dict = Dictionary.new0()
 			hand_dict["hand_index"] = stable_hand_index
-			hand_dict["hand_label"] = hand_label
-			hand_dict["detection_index"] = hand_index
+			hand_dict["detection_index"] = raw_index
 			hand_dict["thumb"] = thumb_dict
 			hand_dict["index"] = index_dict
 			hand_dict["pinch_distance_px"] = pinch_distance_px
 
+			ordered_tips.append((stable_hand_index, hand_dict))
+
+		for _, hand_dict in sorted(ordered_tips, key=lambda item: int(item[0])):
 			tips.append(hand_dict)
 
 		return tips
@@ -316,14 +316,15 @@ class webcam_socket(Node):
 		width = max(1, int(self._last_frame_width))
 		height = max(1, int(self._last_frame_height))
 		identity_map = self._build_hand_identity_map(limit)
+		ordered_tips = []
 
-		for hand_index, hand_landmarks in enumerate(self._last_result_hand_landmarks):
-			if hand_index >= limit:
+		for raw_index, hand_landmarks in enumerate(self._last_result_hand_landmarks):
+			if raw_index >= limit:
 				break
 			if len(hand_landmarks) <= HandLandmark.PINKY_TIP:
 				continue
 
-			hand_label, stable_hand_index = identity_map.get(hand_index, (f"hand_{hand_index}", hand_index + 2))
+			stable_hand_index = int(identity_map.get(raw_index, raw_index))
 
 			thumb = hand_landmarks[HandLandmark.THUMB_TIP]
 			pinky = hand_landmarks[HandLandmark.PINKY_TIP]
@@ -347,12 +348,14 @@ class webcam_socket(Node):
 
 			hand_dict = Dictionary.new0()
 			hand_dict["hand_index"] = stable_hand_index
-			hand_dict["hand_label"] = hand_label
-			hand_dict["detection_index"] = hand_index
+			hand_dict["detection_index"] = raw_index
 			hand_dict["thumb"] = thumb_dict
 			hand_dict["pinky"] = pinky_dict
 			hand_dict["pinch_distance_px"] = pinch_distance_px
 
+			ordered_tips.append((stable_hand_index, hand_dict))
+
+		for _, hand_dict in sorted(ordered_tips, key=lambda item: int(item[0])):
 			tips.append(hand_dict)
 
 		return tips
@@ -363,14 +366,15 @@ class webcam_socket(Node):
 		width = max(1, int(self._last_frame_width))
 		height = max(1, int(self._last_frame_height))
 		identity_map = self._build_hand_identity_map(limit)
+		ordered_rotations = []
 
-		for hand_index, hand_landmarks in enumerate(self._last_result_hand_landmarks):
-			if hand_index >= limit:
+		for raw_index, hand_landmarks in enumerate(self._last_result_hand_landmarks):
+			if raw_index >= limit:
 				break
 			if len(hand_landmarks) <= HandLandmark.PINKY_TIP:
 				continue
 
-			hand_label, stable_hand_index = identity_map.get(hand_index, (f"hand_{hand_index}", hand_index + 2))
+			stable_hand_index = int(identity_map.get(raw_index, raw_index))
 
 			thumb = hand_landmarks[HandLandmark.THUMB_TIP]
 			pinky = hand_landmarks[HandLandmark.PINKY_TIP]
@@ -395,13 +399,15 @@ class webcam_socket(Node):
 
 			hand_dict = Dictionary.new0()
 			hand_dict["hand_index"] = stable_hand_index
-			hand_dict["hand_label"] = hand_label
-			hand_dict["detection_index"] = hand_index
+			hand_dict["detection_index"] = raw_index
 			hand_dict["thumb"] = thumb_dict
 			hand_dict["pinky"] = pinky_dict
 			hand_dict["rotation_rad"] = rotation_rad
 			hand_dict["rotation_deg"] = rotation_deg
 
+			ordered_rotations.append((stable_hand_index, hand_dict))
+
+		for _, hand_dict in sorted(ordered_rotations, key=lambda item: int(item[0])):
 			rotations.append(hand_dict)
 
 		return rotations
