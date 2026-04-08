@@ -6,7 +6,7 @@ class_name ShapesButton extends Path2D
 @onready var path_follow = $PathFollow2D
 var enable = true
 
-func _init(timestamp:float, time_delta:float) -> void:
+func _init_data(timestamp:float, time_delta:float) -> void:
 	timestamp = timestamp
 	time_delta = time_delta
 	

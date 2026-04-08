@@ -41,7 +41,7 @@ _bundled = {
 [node name="FileLoader" type="Node" unique_id=320670669 node_paths=PackedStringArray("track")]
 script = ExtResource("1_mb76j")
 button_scene = SubResource("PackedScene_n0ltf")
-save_loc = &"user://save_game.dat"
+save_loc = &"user://save_game.json"
 track_materials = Array[Material]([ExtResource("4_7o5bc"), ExtResource("5_dtjgu"), ExtResource("6_f3f6h"), ExtResource("7_hsgpo"), ExtResource("3_7qfgo")])
 track = NodePath("")
 track_speed = 8.8

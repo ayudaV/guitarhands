@@ -1,7 +1,7 @@
 class_name Switch extends Timer
 @export var switch_to : Globals.Mode
 
-func _init(timestamp: float, switch_to:Globals.Mode) -> void:
+func _init_data(timestamp: float, switch_to:Globals.Mode) -> void:
 	if timestamp == 0.0:
 		timestamp = 0.001
 	wait_time = timestamp

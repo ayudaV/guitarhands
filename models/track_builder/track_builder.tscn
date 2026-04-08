@@ -1,60 +1,80 @@
 [gd_scene format=3 uid="uid://dmg7582sf8ser"]
 
 [ext_resource type="PackedScene" uid="uid://b24xsgq76t3gh" path="res://models/track_mesh/track_mesh.tscn" id="1_1itv1"]
-[ext_resource type="Script" uid="uid://tu7ryt7ou6bt" path="res://models/track_builder/track_builder.gd" id="1_x7tuk"]
 [ext_resource type="PackedScene" uid="uid://dy2kq360o466m" path="res://models/track_follower/track_follower.tscn" id="2_pxagv"]
-[ext_resource type="AudioStream" uid="uid://b7kvu4aquobxr" path="res://resources/musics/Show_Ado.wav" id="3_x7tuk"]
 [ext_resource type="PackedScene" uid="uid://lvkbbv2xlwrv" path="res://ui/debug/webcam_dashboard.tscn" id="4_3y58e"]
-[ext_resource type="PackedScene" uid="uid://blycg583mx1ip" path="res://models/track_builder/playback_controller/PlaybackController.tscn" id="4_pxagv"]
+[ext_resource type="PackedScene" uid="uid://cvvace03caixm" path="res://models/track_builder/track_setup_panel/track_setup_panel.tscn" id="5_3y58e"]
 [ext_resource type="PackedScene" uid="uid://cmm20e73wfa42" path="res://models/track_builder/file_writer/file_writer.tscn" id="6_drlrx"]
+[ext_resource type="PackedScene" uid="uid://blycg583mx1ip" path="res://models/track_builder/playback_controller/PlaybackController.tscn" id="7_ctrl"]
+[ext_resource type="Script" uid="uid://iv8lsisi1y3" path="res://models/track_builder/file_reader/file_reader.gd" id="8_jlcx2"]
 
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_drlrx"]
-sky_top_color = Color(0, 0, 0, 1)
-sky_horizon_color = Color(0.30588236, 0.10980392, 0.29803923, 1)
-ground_bottom_color = Color(0, 0, 0, 1)
-ground_horizon_color = Color(0.30675837, 0.10945446, 0.29615903, 1)
-energy_multiplier = 13.97
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_3y58e"]
+sky_top_color = Color(0.34901962, 0.22352941, 0.42352942, 1)
+sky_horizon_color = Color(0.6129049, 0.6287351, 0.98974806, 1)
+ground_bottom_color = Color(0.34834287, 0.22340211, 0.42293072, 1)
+ground_horizon_color = Color(0.6117647, 0.627451, 0.9882353, 1)
 
-[sub_resource type="Sky" id="Sky_dj6ci"]
-sky_material = SubResource("ProceduralSkyMaterial_drlrx")
+[sub_resource type="Sky" id="Sky_qbf7r"]
+sky_material = SubResource("ProceduralSkyMaterial_3y58e")
 
-[sub_resource type="Environment" id="Environment_3y58e"]
+[sub_resource type="Environment" id="Environment_jlcx2"]
 background_mode = 2
-sky = SubResource("Sky_dj6ci")
-ambient_light_color = Color(1, 1, 1, 1)
-ambient_light_energy = 16.0
+sky = SubResource("Sky_qbf7r")
+tonemap_mode = 2
+glow_enabled = true
 
 [node name="TrackBuilder" type="Node3D" unique_id=1068395129]
-script = ExtResource("1_x7tuk")
-speed_multiplier = 4.0
-bpm = 132
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=204386895]
+environment = SubResource("Environment_jlcx2")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="WorldEnvironment" unique_id=208005682]
+transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
+shadow_enabled = true
+directional_shadow_max_distance = 1.0
 
 [node name="Track" parent="." unique_id=630540959 instance=ExtResource("1_1itv1")]
 
 [node name="TrackFollower" parent="Track" unique_id=1339076220 node_paths=PackedStringArray("music") instance=ExtResource("2_pxagv")]
 transform = Transform3D(-4.370774e-08, 0, -0.9999123, 0, 1, 0, 0.99991655, 0, -4.3707555e-08, 0, 0, 0)
-track_speed = 8.8
-music = NodePath("../../PlaybackController/Music")
+music = NodePath("../../ConfigLayer/PlaybackController/Music")
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1563037313]
-environment = SubResource("Environment_3y58e")
+[node name="ShapeLayer" type="CanvasLayer" parent="." unique_id=292552023]
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="WorldEnvironment" unique_id=1996162545]
-transform = Transform3D(0.05589118, 0, 0.99843687, 0, 1, 0, -0.99843687, 0, 0.05589118, 0, 0, 1.682435)
+[node name="ShapeRoot" type="Node2D" parent="ShapeLayer" unique_id=511805932]
 
-[node name="WebcamDashboard" parent="." unique_id=232856454 instance=ExtResource("4_3y58e")]
+[node name="ConfigLayer" type="CanvasLayer" parent="." unique_id=1368105350]
 
-[node name="PlaybackController" parent="." unique_id=214758575 node_paths=PackedStringArray("track_follower", "music") instance=ExtResource("4_pxagv")]
-track_follower = NodePath("../Track/TrackFollower")
+[node name="WebcamDashboard" parent="ConfigLayer" unique_id=232856454 instance=ExtResource("4_3y58e")]
+size_flags_horizontal = 8
+
+[node name="TrackSetupPanel" parent="ConfigLayer" unique_id=1679004525 instance=ExtResource("5_3y58e")]
+offset_left = -379.0
+offset_top = 19.0
+offset_right = -19.0
+offset_bottom = 292.0
+playback_controller_path = NodePath("../PlaybackController")
+
+[node name="PlaybackController" parent="ConfigLayer" unique_id=214758575 node_paths=PackedStringArray("track_follower", "music", "switch_root") instance=ExtResource("7_ctrl")]
+track_follower = NodePath("../../Track/TrackFollower")
 music = NodePath("Music")
+switch_root = NodePath("../../SwitchRoot")
 
-[node name="Music" type="AudioStreamPlayer" parent="PlaybackController" unique_id=439423886]
-stream = ExtResource("3_x7tuk")
+[node name="Music" type="AudioStreamPlayer" parent="ConfigLayer/PlaybackController" unique_id=113550091]
 
 [node name="FileWriter" parent="." unique_id=569449936 node_paths=PackedStringArray("music", "track_follower") instance=ExtResource("6_drlrx")]
-music = NodePath("../PlaybackController/Music")
-save_loc = &"user://ado_show.tres"
+music = NodePath("../ConfigLayer/PlaybackController/Music")
 record_mode = 1
 bpm = 132
 speed_multiplier = 4.0
 track_follower = NodePath("../Track/TrackFollower")
+
+[node name="FileReader" type="Node" parent="." unique_id=1038628993 node_paths=PackedStringArray("track", "music", "track_follower", "shape_root", "switch_root")]
+script = ExtResource("8_jlcx2")
+track = NodePath("../Track")
+music = NodePath("../ConfigLayer/PlaybackController/Music")
+track_follower = NodePath("../Track/TrackFollower")
+shape_root = NodePath("../ShapeLayer/ShapeRoot")
+switch_root = NodePath("../SwitchRoot")
+
+[node name="SwitchRoot" type="Node" parent="." unique_id=595693183]

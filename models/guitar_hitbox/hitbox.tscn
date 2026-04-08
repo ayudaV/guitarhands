@@ -1,23 +1,17 @@
 [gd_scene format=3 uid="uid://c125j42emxdbg"]
 
 [ext_resource type="Script" uid="uid://ccfq80xfqkl50" path="res://models/guitar_hitbox/hitbox_controller.gd" id="1_dh7te"]
+[ext_resource type="Material" uid="uid://bxvpw6x3o5oud" path="res://resources/materials/alpha_blue.tres" id="2_7f1a7"]
 [ext_resource type="AudioStream" uid="uid://d31bcyrc65wkv" path="res://resources/sounds/Alchemist HiHat 3.wav" id="2_lewim"]
 [ext_resource type="PackedScene" uid="uid://d38hmqod6y03e" path="res://ui/hand_overlay/hand_overlay.tscn" id="3_lewim"]
+[ext_resource type="Material" uid="uid://dan2vqb314db1" path="res://resources/materials/alpha_red.tres" id="4_lgy8n"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_lewim"]
-size = Vector3(0.4, 0.3, 1)
+size = Vector3(0.8, 0.3, 0.8)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lewim"]
-transparency = 1
-albedo_color = Color(0.47427702, 0.9371796, 1, 0.22900002)
-emission_enabled = true
-emission_energy_multiplier = 5.6
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_7f1a7"]
-material = SubResource("StandardMaterial3D_lewim")
-top_radius = 0.2
-bottom_radius = 0.2
-height = 0.3
+[sub_resource type="BoxMesh" id="BoxMesh_lgy8n"]
+material = ExtResource("2_7f1a7")
+size = Vector3(0.8, 0.3, 0.2)
 
 [sub_resource type="CurveTexture" id="CurveTexture_lewim"]
 
@@ -54,32 +48,26 @@ material = SubResource("StandardMaterial3D_ngoby")
 size = Vector2(0.1, 0.1)
 orientation = 2
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7f1a7"]
-transparency = 1
-albedo_color = Color(0.96527797, 0.86498266, 1.1551381e-06, 0.22745098)
-emission_enabled = true
-emission_energy_multiplier = 5.6
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_lgy8n"]
-material = SubResource("StandardMaterial3D_7f1a7")
-top_radius = 0.2
-bottom_radius = 0.2
-height = 0.3
+[sub_resource type="BoxMesh" id="BoxMesh_ngoby"]
+material = ExtResource("4_lgy8n")
+size = Vector3(0.8, 0.3, 0.2)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lgy8n"]
 transparency = 1
-albedo_color = Color(0, 0.6864975, 0.96719956, 0.39100003)
+albedo_color = Color(0.81869453, 0.7698625, 0.7007099, 0.58500004)
 emission_enabled = true
-emission_energy_multiplier = 2.0
+emission = Color(0.99828905, 0.8805186, 0.5851987, 1)
+emission_energy_multiplier = 1.97
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ngoby"]
 material = SubResource("StandardMaterial3D_lgy8n")
-size = Vector2(5, 0.5)
+size = Vector2(5, 0.2)
 orientation = 2
 
 [node name="Hitbox" type="Node3D" unique_id=67998447]
 
 [node name="Main" type="Area3D" parent="." unique_id=1304312519]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
 script = ExtResource("1_dh7te")
 device = 1
 
@@ -89,7 +77,7 @@ shape = SubResource("BoxShape3D_lewim")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Main" unique_id=18158953]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
-mesh = SubResource("CylinderMesh_7f1a7")
+mesh = SubResource("BoxMesh_lgy8n")
 
 [node name="GPUParticles3D" type="GPUParticles3D" parent="Main" unique_id=111968523]
 transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 0, 0, 0)
@@ -105,12 +93,13 @@ draw_pass_1 = SubResource("PlaneMesh_a5flf")
 stream = ExtResource("2_lewim")
 
 [node name="Secondary" type="Area3D" parent="." unique_id=1541454675]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 0)
 script = ExtResource("1_dh7te")
 device = 2
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Secondary" unique_id=1528299680]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
-mesh = SubResource("CylinderMesh_lgy8n")
+mesh = SubResource("BoxMesh_ngoby")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Secondary" unique_id=289114134]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
@@ -142,5 +131,5 @@ unique_name_in_owner = true
 layout_mode = 1
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=22169074]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
 mesh = SubResource("PlaneMesh_ngoby")

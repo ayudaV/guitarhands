@@ -2,6 +2,8 @@
 
 [ext_resource type="Script" uid="uid://cg5lrl8q6p582" path="res://models/track_mesh/track_mesh.gd" id="1_aot2y"]
 [ext_resource type="ArrayMesh" uid="uid://cfbljwa5ge3ah" path="res://models/ring/ring.tres" id="2_81oq7"]
+[ext_resource type="Material" uid="uid://bnfih7x3jqu5v" path="res://resources/materials/alpha_white.tres" id="2_d78tc"]
+[ext_resource type="Material" uid="uid://b4gi8rtkbkg2y" path="res://resources/materials/dark_gray.tres" id="2_h33vl"]
 
 [sub_resource type="Curve3D" id="Curve3D_u140q"]
 _data = {
@@ -9,9 +11,6 @@ _data = {
 "tilts": PackedFloat32Array(0, 0)
 }
 point_count = 2
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_u140q"]
-albedo_color = Color(0.13682586, 0.13682568, 0.13682577, 1)
 
 [sub_resource type="MultiMesh" id="MultiMesh_81oq7"]
 transform_format = 1
@@ -37,7 +36,7 @@ path_local = false
 path_continuous_u = true
 path_u_distance = 1.0
 path_joined = false
-material = SubResource("StandardMaterial3D_u140q")
+material = ExtResource("2_h33vl")
 
 [node name="Rails" type="Node3D" parent="." unique_id=1181699382]
 
@@ -54,6 +53,7 @@ path_local = false
 path_continuous_u = true
 path_u_distance = 1.0
 path_joined = false
+material = ExtResource("2_d78tc")
 
 [node name="Right" type="CSGPolygon3D" parent="Rails" unique_id=1467877787]
 polygon = PackedVector2Array(0.9, 0, 1, 0.1, 1.1, 0)
@@ -68,6 +68,7 @@ path_local = false
 path_continuous_u = true
 path_u_distance = 1.0
 path_joined = false
+material = ExtResource("2_d78tc")
 
 [node name="RRight" type="CSGPolygon3D" parent="Rails" unique_id=1066922858]
 polygon = PackedVector2Array(1.9, 0, 2, 0.1, 2.1, 0)
@@ -82,6 +83,7 @@ path_local = false
 path_continuous_u = true
 path_u_distance = 1.0
 path_joined = false
+material = ExtResource("2_d78tc")
 
 [node name="Left" type="CSGPolygon3D" parent="Rails" unique_id=529562771]
 polygon = PackedVector2Array(-1.1, 0, -1, 0.1, -0.9, 0)
@@ -96,6 +98,7 @@ path_local = false
 path_continuous_u = true
 path_u_distance = 1.0
 path_joined = false
+material = ExtResource("2_d78tc")
 
 [node name="LLeft" type="CSGPolygon3D" parent="Rails" unique_id=734074971]
 polygon = PackedVector2Array(-2.1, 0, -2, 0.1, -1.9, 0)
@@ -110,6 +113,7 @@ path_local = false
 path_continuous_u = true
 path_u_distance = 1.0
 path_joined = false
+material = ExtResource("2_d78tc")
 
 [node name="Rings" type="MultiMeshInstance3D" parent="." unique_id=971693919]
 multimesh = SubResource("MultiMesh_81oq7")

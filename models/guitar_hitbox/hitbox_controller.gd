@@ -25,13 +25,15 @@ func _input(event: InputEvent) -> void:
 			return
 		if touch_event.pressed:
 			_button_press()
-
+		else:
+			$MeshInstance3D.mesh.material.emission_energy_multiplier = 1.5
+			
 func _button_press():
 	var buttons:Array[Node3D] = get_overlapping_bodies().filter(func(node:Node3D): return node.is_in_group("Button"))
 	match len(buttons):
 		0: error_click()
 		_: remove_button(buttons[0].get_parent())
-		
+	$MeshInstance3D.mesh.material.emission_energy_multiplier = 3.5
 func error_click():
 	pass
 	

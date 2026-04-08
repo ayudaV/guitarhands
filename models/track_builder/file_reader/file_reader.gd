@@ -1,129 +1,147 @@
 class_name FileReader extends Node
 
-@export var save_loc: StringName = "user://ado_show.tres"
-@export var auto_play: bool = true
-
+@export var track_name : String
+@export var track_title : String
 @export var track: Path3D
 @export var music: AudioStreamPlayer
 @export var track_follower: TrackFollower
 @export var shape_root: Node
-
+@export var switch_root: Node
 var track_speed: float = 0.0
 
 var _guitar_button_scene: PackedScene = preload("res://models/button/Button.tscn")
 var _guitar_slider_scene: PackedScene = preload("res://models/slider/slider.tscn")
 var _shape_button_scene: PackedScene = preload("res://models/shape_slider/shape_slider.tscn")
 var _switch_scene: PackedScene = preload("res://models/switch/Switch.tscn")
-var _switch_nodes: Array[Switch] = []
-var _playback_started: bool = false
 const _SPAWNED_GROUP := "loaded_track_spawned"
+const _TRACKS_DIR := "user://tracks"
+const _DATA_FILE_NAME := "data.json"
 
 func _ready() -> void:
 	reload_track()
-	if auto_play:
-		start_playback()
 
 func reload_track() -> void:
 	_clear_spawned_nodes()
-	_switch_nodes.clear()
-	_playback_started = false
 	if music != null:
 		music.stop()
 	if track_follower != null:
 		track_follower.is_playing = false
 
+	var save_loc := _get_save_loc()
+
 	if not FileAccess.file_exists(save_loc):
-		push_warning("FileReader: save file not found at %s" % String(save_loc))
+		push_warning("FileReader: save file not found at %s" % save_loc)
 		return
 
-	var loaded := ResourceLoader.load(String(save_loc), "", ResourceLoader.CACHE_MODE_IGNORE)
-	if loaded == null or not (loaded is GenericResource):
-		push_warning("FileReader: failed to load GenericResource from %s" % String(save_loc))
+	var file := FileAccess.open(save_loc, FileAccess.READ)
+	if file == null:
+		push_warning("FileReader: failed to open save file at %s" % save_loc)
+		return
+	var parse := JSON.new()
+	var parse_result := parse.parse(file.get_as_text())
+	file.close()
+	if parse_result != OK or not (parse.data is Dictionary):
+		push_warning("FileReader: invalid JSON in save file %s" % save_loc)
 		return
 
-	var data: GenericResource = loaded as GenericResource
-	track_speed = data.bpm / 60.0 * data.speed_multiplier
+	var data: Dictionary = parse.data
+	track_title = String(data.get("title", track_title if not track_title.is_empty() else track_name))
+	track_speed = _to_float(data.get("bpm", 120.0)) / 60.0 * _to_float(data.get("speed_multiplier", 1.0))
 
-	if music != null:
-		music.stream = data.music
+	if music != null and data.has("music_path"):
+		var music_path := String(data.get("music_path", ""))
+		if not music_path.is_empty():
+			var loaded_music := _load_audio_stream(music_path)
+			if loaded_music != null:
+				music.stream = loaded_music
 
 	if track_follower != null:
 		track_follower.track_speed = track_speed
 		track_follower.music = music
 
-	_spawn_guitar_buttons(data.guitar_buttons)
-	_spawn_guitar_sliders(data.guitar_sliders)
-	_spawn_shape_buttons(data.shape_buttons)
-	_spawn_switchs(data.switchs)
+	_spawn_guitar_buttons(data.get("guitar_buttons", []))
+	_spawn_guitar_sliders(data.get("guitar_sliders", []))
+	_spawn_shape_buttons(data.get("shape_buttons", []))
+	_spawn_switchs(data.get("switchs", []))
 
-func start_playback() -> void:
-	if _playback_started:
-		return
-	_playback_started = true
+func _get_save_loc() -> String:
+	return "%s/%s/%s" % [_TRACKS_DIR, track_name, _DATA_FILE_NAME]
 
-	if music != null:
-		music.play()
-	if track_follower != null:
-		track_follower.is_playing = true
+func _load_audio_stream(path: String) -> AudioStream:
+	var normalized_path := path.strip_edges()
+	if normalized_path.is_empty():
+		return null
 
-	for switch_node in _switch_nodes:
-		if is_instance_valid(switch_node):
-			switch_node.start()
+	if normalized_path.get_extension().to_lower() == "wav" and FileAccess.file_exists(normalized_path):
+		return AudioStreamWAV.load_from_file(normalized_path)
 
-func _spawn_guitar_buttons(items: Array[GuitarButtonData]) -> void:
+	var loaded_resource := load(normalized_path)
+	if loaded_resource is AudioStream:
+		return loaded_resource as AudioStream
+
+	return null
+
+func _spawn_guitar_buttons(items: Array) -> void:
 	if track == null:
 		push_warning("FileReader: track not set, cannot spawn guitar buttons")
 		return
 
 	for item in items:
-		if item == null:
+		if not (item is Dictionary):
 			continue
+		var item_dict: Dictionary = item
 		var button = _guitar_button_scene.instantiate() as GuitarButton
-		button.timestamp = item.timestamp
-		button.pos_x = item.pos_x
-		button.material = item.material
+		button.timestamp = _to_float(item_dict.get("timestamp", 0.0))
+		button.pos_x = _to_float(item_dict.get("pos_x", 0.0))
+		var material_path := String(item_dict.get("material_path", ""))
+		if not material_path.is_empty():
+			var loaded_material := load(material_path)
+			if loaded_material is Material:
+				button.material = loaded_material as Material
 		button.track_speed = track_speed
 		button.add_to_group(_SPAWNED_GROUP)
 		track.add_child(button)
 
-func _spawn_guitar_sliders(items: Array[GuitarSliderData]) -> void:
+func _spawn_guitar_sliders(items: Array) -> void:
 	if track == null:
 		push_warning("FileReader: track not set, cannot spawn guitar sliders")
 		return
 
 	for item in items:
-		if item == null:
+		if not (item is Dictionary):
 			continue
+		var item_dict: Dictionary = item
 		var slider = _guitar_slider_scene.instantiate() as GuitarSlider
-		slider.progress = item.timestamp * track_speed
+		slider.progress = _to_float(item_dict.get("timestamp", 0.0)) * track_speed
 		slider.add_to_group(_SPAWNED_GROUP)
 		track.add_child(slider)
 
-func _spawn_shape_buttons(items: Array[ShapeButtonData]) -> void:
+func _spawn_shape_buttons(items: Array) -> void:
 	if shape_root == null:
 		push_warning("FileReader: shape_root not set, cannot spawn shape buttons")
 		return
 
 	for item in items:
-		if item == null:
+		if not (item is Dictionary):
 			continue
+		var item_dict: Dictionary = item
 		var shape_button = _shape_button_scene.instantiate() as ShapesButton
-		shape_button.timestamp = item.timestamp
-		shape_button.time_delta = item.time_delta
+		shape_button.timestamp = _to_float(item_dict.get("timestamp", 0.0))
+		shape_button.time_delta = _to_float(item_dict.get("time_delta", 0.0))
 		shape_button.add_to_group(_SPAWNED_GROUP)
 		shape_root.add_child(shape_button)
 
-func _spawn_switchs(items: Array[SwitchData]) -> void:
+func _spawn_switchs(items: Array) -> void:
 	for item in items:
-		if item == null:
+		if not (item is Dictionary):
 			continue
+		var item_dict: Dictionary = item
 		var switch_node = _switch_scene.instantiate() as Switch
-		switch_node.wait_time = max(0.001, item.timestamp)
-		switch_node.switch_to = item.switch_to
+		switch_node.wait_time = max(0.001, _to_float(item_dict.get("timestamp", 0.0)))
+		switch_node.switch_to = _to_int(item_dict.get("switch_to", 0))
 		switch_node.timeout.connect(_on_switch_timeout.bind(switch_node.switch_to))
 		switch_node.add_to_group(_SPAWNED_GROUP)
-		add_child(switch_node)
-		_switch_nodes.append(switch_node)
+		switch_root.add_child(switch_node)
 
 func _on_switch_timeout(switch_to: int) -> void:
 	Globals.switch_mode(switch_to)
@@ -132,3 +150,21 @@ func _clear_spawned_nodes() -> void:
 	for node in get_tree().get_nodes_in_group(_SPAWNED_GROUP):
 		if is_instance_valid(node):
 			node.queue_free()
+
+func _to_float(value: Variant) -> float:
+	if value is float:
+		return value
+	if value is int:
+		return float(value)
+	if value is String:
+		return float(value)
+	return 0.0
+
+func _to_int(value: Variant) -> int:
+	if value is int:
+		return value
+	if value is float:
+		return int(value)
+	if value is String:
+		return int(value)
+	return 0
