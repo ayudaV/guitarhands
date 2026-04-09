@@ -9,6 +9,8 @@ class_name TrackCreatePanel extends PanelContainer
 @onready var track_title_edit: LineEdit = $MarginContainer/VBoxContainer/TrackTitleRow/TrackTitleEdit
 @onready var bpm_spin_box: SpinBox = $MarginContainer/VBoxContainer/BpmRow/BpmSpinBox
 @onready var speed_multiplier_spin_box: SpinBox = $MarginContainer/VBoxContainer/SpeedMultiplierRow/SpeedMultiplierSpinBox
+@onready var snap_enabled_check_box: CheckBox = $MarginContainer/VBoxContainer/TimingSnapRow/SnapEnabledCheckBox
+@onready var snap_divisor_spin_box: SpinBox = $MarginContainer/VBoxContainer/TimingSnapRow/SnapDivisorSpinBox
 @onready var track_speed_edit: LineEdit = $MarginContainer/VBoxContainer/TrackSpeedRow/TrackSpeedEdit
 @onready var music_path_edit: LineEdit = $MarginContainer/VBoxContainer/MusicRow/MusicPathEdit
 @onready var browse_button: Button = $MarginContainer/VBoxContainer/MusicRow/BrowseButton
@@ -26,6 +28,8 @@ func _ready() -> void:
 	file_dialog.file_selected.connect(_on_music_file_selected)
 	bpm_spin_box.value_changed.connect(_on_metadata_changed)
 	speed_multiplier_spin_box.value_changed.connect(_on_metadata_changed)
+	snap_enabled_check_box.toggled.connect(_on_snap_changed)
+	snap_divisor_spin_box.value_changed.connect(_on_snap_divisor_changed)
 
 	file_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
 	file_dialog.access = FileDialog.ACCESS_FILESYSTEM
@@ -39,6 +43,9 @@ func _ready() -> void:
 	speed_multiplier_spin_box.min_value = 0.01
 	speed_multiplier_spin_box.max_value = 100.0
 	speed_multiplier_spin_box.step = 0.01
+	snap_divisor_spin_box.min_value = 1
+	snap_divisor_spin_box.max_value = 32
+	snap_divisor_spin_box.step = 1
 	_sync_fields_from_loader()
 	_update_track_speed_display()
 
@@ -52,6 +59,9 @@ func _sync_fields_from_loader() -> void:
 
 	bpm_spin_box.value = float(file_loader.bpm)
 	speed_multiplier_spin_box.value = float(file_loader.speed_multiplier)
+	snap_enabled_check_box.button_pressed = file_loader.use_beat_snap
+	snap_divisor_spin_box.value = float(file_loader.beat_snap_divisor)
+	snap_divisor_spin_box.editable = file_loader.use_beat_snap
 	music_path_edit.text = file_loader.music_path
 	_update_track_speed_display()
 
@@ -62,6 +72,8 @@ func _copy_display_to_writer() -> void:
 		file_writer.track_title = file_writer.track_name
 	file_writer.bpm = int(bpm_spin_box.value)
 	file_writer.speed_multiplier = float(speed_multiplier_spin_box.value)
+	file_writer.use_beat_snap = snap_enabled_check_box.button_pressed
+	file_writer.beat_snap_divisor = int(snap_divisor_spin_box.value)
 	file_writer.source_music_path = music_path_edit.text.strip_edges()
 	file_writer.prepare_track()
 
@@ -86,6 +98,12 @@ func _on_music_file_selected(path: String) -> void:
 
 func _on_metadata_changed(_value: float) -> void:
 	_update_track_speed_display()
+
+func _on_snap_changed(enabled: bool) -> void:
+	snap_divisor_spin_box.editable = enabled
+
+func _on_snap_divisor_changed(_value: float) -> void:
+	pass
 
 func _on_save_pressed() -> void:
 	_copy_display_to_writer()

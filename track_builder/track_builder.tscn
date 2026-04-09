@@ -22,7 +22,6 @@ sky_material = SubResource("ProceduralSkyMaterial_3y58e")
 [sub_resource type="Environment" id="Environment_jlcx2"]
 background_mode = 2
 sky = SubResource("Sky_qbf7r")
-tonemap_mode = 2
 glow_enabled = true
 
 [node name="TrackBuilder" type="Node3D" unique_id=1068395129]
@@ -90,6 +89,8 @@ file_reader = NodePath("../../../FileReader")
 playback_controller = NodePath("../../PlaybackController")
 
 [node name="FileLoader" parent="." unique_id=320670669 instance=ExtResource("7_2pksa")]
+use_beat_snap = null
+beat_snap_divisor = null
 
 [node name="FileWriter" parent="." unique_id=569449936 node_paths=PackedStringArray("music", "track_follower") instance=ExtResource("6_drlrx")]
 music = NodePath("../ConfigLayer/PlaybackController/Music")

@@ -37,9 +37,9 @@ func switch(switch_to : Globals.Mode):
 	
 func clear():
 	match mode:
-		Globals.Mode.GUITAR: remove_child(guitar_hitbox)
-		Globals.Mode.SPACESHIP: remove_child(spaceship)
-		Globals.Mode.SHAPES: remove_child(shapes)
+		Globals.Mode.GUITAR: if guitar_hitbox.is_inside_tree(): remove_child(guitar_hitbox)
+		Globals.Mode.SPACESHIP: if spaceship.is_inside_tree(): remove_child(spaceship)
+		Globals.Mode.SHAPES: if shapes.is_inside_tree(): remove_child(shapes)
 
 func _on_hurtbox_body_entered(body: Node3D) -> void:
 	Globals.current_score -= 1

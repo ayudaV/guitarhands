@@ -8,6 +8,7 @@ class_name FileReader extends Node
 @export var shape_root: Node
 @export var switch_root: Node
 var track_speed: float = 0.0
+var _seconds_per_beat := 0.5
 
 var _guitar_button_scene: PackedScene = preload("res://models/button/Button.tscn")
 var _guitar_slider_scene: PackedScene = preload("res://models/slider/slider.tscn")
@@ -45,6 +46,7 @@ func reload_track() -> void:
 	var data: Dictionary = parse.data
 	track_title = String(data.get("title", track_title if not track_title.is_empty() else track_name))
 	var bpm := _to_float(data.get("bpm", 120.0))
+	_seconds_per_beat = 60.0 / max(bpm, 0.001)
 	var speed_multiplier := _to_float(data.get("speed_multiplier", 1.0))
 	track_speed = _to_float(data.get("track_speed", bpm / 60.0 * speed_multiplier))
 
@@ -82,7 +84,7 @@ func _spawn_guitar_buttons(items: Array) -> void:
 			continue
 		var item_dict: Dictionary = item
 		var button = _guitar_button_scene.instantiate() as GuitarButton
-		button.timestamp = _to_float(item_dict.get("timestamp", 0.0))
+		button.timestamp = _dict_time_to_seconds(item_dict, "beat", "timestamp")
 		button.pos_x = _to_float(item_dict.get("pos_x", 0.0))
 		var material_path := String(item_dict.get("material_path", ""))
 		if not material_path.is_empty():
@@ -99,7 +101,7 @@ func _spawn_spaceship_buttons(items: Array) -> void:
 			continue
 		var item_dict: Dictionary = item
 		var button = _guitar_button_scene.instantiate() as GuitarButton
-		button.timestamp = _to_float(item_dict.get("timestamp", 0.0))
+		button.timestamp = _dict_time_to_seconds(item_dict, "beat", "timestamp")
 		button.pos_x = _to_float(item_dict.get("pos_x", 0.0))
 		var material_path := String(item_dict.get("material_path", ""))
 		if not material_path.is_empty():
@@ -116,7 +118,7 @@ func _spawn_guitar_sliders(items: Array) -> void:
 			continue
 		var item_dict: Dictionary = item
 		var slider = _guitar_slider_scene.instantiate() as GuitarSlider
-		slider.progress = _to_float(item_dict.get("timestamp", 0.0)) * track_speed
+		slider.progress = _dict_time_to_seconds(item_dict, "beat", "timestamp") * track_speed
 		slider.add_to_group(_SPAWNED_GROUP)
 		track.add_child(slider)
 
@@ -127,9 +129,12 @@ func _spawn_shape_buttons(items: Array) -> void:
 		var item_dict: Dictionary = item
 		var shape_button = _shape_button_scene.instantiate() as ShapesButton
 		shape_button.music = music
-		shape_button.spawn_timestamp = _to_float(item_dict.get("spawn_timestamp", _to_float(item_dict.get("timestamp", 0.0)) - 0.8))
-		shape_button.timestamp = _to_float(item_dict.get("timestamp", 0.0))
-		shape_button.time_delta = _to_float(item_dict.get("time_delta", 0.0))
+		shape_button.timestamp = _dict_time_to_seconds(item_dict, "beat", "timestamp")
+		if item_dict.has("spawn_beat"):
+			shape_button.spawn_timestamp = _beats_to_seconds(_to_float(item_dict.get("spawn_beat", 0.0)))
+		else:
+			shape_button.spawn_timestamp = _to_float(item_dict.get("spawn_timestamp", shape_button.timestamp - 0.8))
+		shape_button.time_delta = max(0.05, _dict_duration_to_seconds(item_dict, "duration_beats", "time_delta"))
 		# Convert path points array to Curve2D
 		var path_curve := Curve2D.new()
 		var path_points = item_dict.get("path_points", [])
@@ -147,11 +152,24 @@ func _spawn_switchs(items: Array) -> void:
 			continue
 		var item_dict: Dictionary = item
 		var switch_node = _switch_scene.instantiate() as Switch
-		switch_node.wait_time = max(0.001, _to_float(item_dict.get("timestamp", 0.0)))
+		switch_node.wait_time = max(0.001, _dict_time_to_seconds(item_dict, "beat", "timestamp"))
 		switch_node.switch_to = _to_int(item_dict.get("switch_to", 0))
 		switch_node.timeout.connect(_on_switch_timeout.bind(switch_node.switch_to))
 		switch_node.add_to_group(_SPAWNED_GROUP)
 		switch_root.add_child(switch_node)
+
+func _beats_to_seconds(beats: float) -> float:
+	return beats * _seconds_per_beat
+
+func _dict_time_to_seconds(item_dict: Dictionary, beat_key: String, seconds_key: String = "timestamp") -> float:
+	if item_dict.has(beat_key):
+		return _beats_to_seconds(_to_float(item_dict.get(beat_key, 0.0)))
+	return _to_float(item_dict.get(seconds_key, 0.0))
+
+func _dict_duration_to_seconds(item_dict: Dictionary, beat_key: String, seconds_key: String = "time_delta") -> float:
+	if item_dict.has(beat_key):
+		return _beats_to_seconds(_to_float(item_dict.get(beat_key, 0.0)))
+	return _to_float(item_dict.get(seconds_key, 0.0))
 
 func _on_switch_timeout(switch_to: int) -> void:
 	Globals.switch_mode(switch_to)

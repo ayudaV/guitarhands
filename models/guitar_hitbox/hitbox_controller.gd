@@ -16,7 +16,7 @@ func _input(event: InputEvent) -> void:
 		var drag_event: InputEventScreenDrag = event
 		if target_id >= 0 and drag_event.index != target_id:
 			return
-		position.x = 5 * drag_event.position.x / 1920 - 2.5
+		position.x = clampf(6 * drag_event.position.x / 1920 - 3, -2, 2)
 		position.y = 0
 		position.z = 0
 	elif event is InputEventScreenTouch:

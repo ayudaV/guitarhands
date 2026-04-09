@@ -88,6 +88,29 @@ min_value = 0.01
 step = 0.01
 value = 1.0
 
+[node name="TimingSnapRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TimingSnapLabel" type="Label" parent="MarginContainer/VBoxContainer/TimingSnapRow"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "Snap"
+
+[node name="SnapEnabledCheckBox" type="CheckBox" parent="MarginContainer/VBoxContainer/TimingSnapRow"]
+layout_mode = 2
+text = "Beat"
+button_pressed = true
+
+[node name="SnapDivisorSpinBox" type="SpinBox" parent="MarginContainer/VBoxContainer/TimingSnapRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 1.0
+max_value = 32.0
+step = 1.0
+value = 8.0
+suffix = "/ beat"
+
 [node name="TrackSpeedRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1291515531]
 layout_mode = 2
 theme_override_constants/separation = 8

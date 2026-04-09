@@ -6,6 +6,8 @@ class_name FileLoader extends Node
 @export var music_path : String
 @export var bpm : float = 120.0
 @export var speed_multiplier : float = 1.0
+@export var use_beat_snap := true
+@export var beat_snap_divisor := 4
 @export var track_speed := 0.0
 
 var track_data: Dictionary = {}
@@ -45,6 +47,8 @@ func load_track(new_track_name: String) -> bool:
 	music_path = String(data.get("music_path", music_path))
 	bpm = _to_float(data.get("bpm", bpm))
 	speed_multiplier = _to_float(data.get("speed_multiplier", speed_multiplier))
+	use_beat_snap = bool(data.get("use_beat_snap", use_beat_snap))
+	beat_snap_divisor = max(1, _to_int(data.get("beat_snap_divisor", beat_snap_divisor)))
 	track_speed = _to_float(data.get("track_speed", bpm / 60.0 * speed_multiplier))
 	guitar_buttons_data = _load_dictionary_list(data.get("guitar_buttons", []))
 	spaceship_buttons_data = _load_dictionary_list(data.get("spaceship_buttons", []))

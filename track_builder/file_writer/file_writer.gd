@@ -11,6 +11,8 @@ enum RecordMode {
 @export var record_mode: RecordMode = RecordMode.APPEND
 @export var bpm := 120
 @export var speed_multiplier := 1.0
+@export var use_beat_snap := true
+@export_range(1, 32, 1) var beat_snap_divisor := 4
 @export var track_follower : TrackFollower
 @export var current_mode : Globals.Mode
 
@@ -36,8 +38,6 @@ var shape_buttons: Array[ShapeButtonData] = []
 var switchs: Array[SwitchData] = []
 
 var timer := 0.0
-var main_shape_slide_delta := 0.0
-var secondary_shape_slide_delta := 0.0
 var _main_shape_slide_start_time := -1.0
 var _secondary_shape_slide_start_time := -1.0
 var _spaceship_button_placing := false
@@ -78,8 +78,6 @@ func discard_unsaved_changes() -> void:
 	new_guitar_sliders.clear()
 	new_shape_buttons.clear()
 	new_switchs.clear()
-	main_shape_slide_delta = 0.0
-	secondary_shape_slide_delta = 0.0
 	_main_shape_slide_start_time = -1.0
 	_secondary_shape_slide_start_time = -1.0
 	_spaceship_button_placing = false
@@ -98,6 +96,8 @@ func import_track_data(data: Dictionary) -> void:
 	guitar_sliders = _deserialize_guitar_sliders(data.get("guitar_sliders", []))
 	shape_buttons = _deserialize_shape_buttons(data.get("shape_buttons", []))
 	switchs = _deserialize_switches(data.get("switchs", []))
+	use_beat_snap = bool(data.get("use_beat_snap", use_beat_snap))
+	beat_snap_divisor = max(1, _to_int(data.get("beat_snap_divisor", beat_snap_divisor)))
 	new_guitar_buttons.clear()
 	new_spaceship_buttons.clear()
 	new_guitar_sliders.clear()
@@ -137,6 +137,23 @@ func _sync_music_stream() -> void:
 
 func _sync_track_speed() -> void:
 	track_speed = float(bpm) / 60.0 * float(speed_multiplier)
+
+func _get_seconds_per_beat() -> float:
+	return 60.0 / max(float(bpm), 0.001)
+
+func _seconds_to_beats(seconds: float) -> float:
+	return seconds / _get_seconds_per_beat()
+
+func _beats_to_seconds(beats: float) -> float:
+	return beats * _get_seconds_per_beat()
+
+func _snap_time_seconds(seconds: float) -> float:
+	if not use_beat_snap:
+		return snapped(seconds, 0.001)
+	var divisor = max(1, beat_snap_divisor)
+	var beat_step := 1.0 / float(divisor)
+	var snapped_beats = snapped(_seconds_to_beats(seconds), beat_step)
+	return _beats_to_seconds(snapped_beats)
 
 func _get_track_dir() -> String:
 	return "%s/%s" % [_TRACKS_DIR, track_name]
@@ -192,7 +209,7 @@ func _write_initial_data_file(music_path: String) -> void:
 
 func _process(delta: float) -> void:
 	timer = music.get_playback_position()
-	var snapped_time = snapped(timer, 0.001)
+	var snapped_time = _snap_time_seconds(timer)
 
 	if Input.is_action_just_pressed("SpaceshipBPlace"):
 		_pending_spaceship_button_trigger = true
@@ -228,20 +245,20 @@ func _process(delta: float) -> void:
 	if Input.is_action_pressed("MainShapeSlide"):
 		if _main_shape_slide_start_time < 0.0:
 			_main_shape_slide_start_time = snapped_time
-		main_shape_slide_delta += delta
 	if Input.is_action_just_released("MainShapeSlide"):
+		var main_end = snapped_time
 		var main_start = _main_shape_slide_start_time if _main_shape_slide_start_time >= 0.0 else snapped_time
-		new_shape_buttons.append(_new_shape_button_data(main_start, main_shape_slide_delta, _SHAPE_PATH_MAIN))
-		main_shape_slide_delta = 0.0
+		var main_duration = max(0.0, main_end - main_start)
+		new_shape_buttons.append(_new_shape_button_data(main_start, main_duration, _SHAPE_PATH_MAIN))
 		_main_shape_slide_start_time = -1.0
 	if Input.is_action_pressed("SecondaryShapeSlide"):
 		if _secondary_shape_slide_start_time < 0.0:
 			_secondary_shape_slide_start_time = snapped_time
-		secondary_shape_slide_delta += delta
 	if Input.is_action_just_released("SecondaryShapeSlide"):
+		var secondary_end = snapped_time
 		var secondary_start = _secondary_shape_slide_start_time if _secondary_shape_slide_start_time >= 0.0 else snapped_time
-		new_shape_buttons.append(_new_shape_button_data(secondary_start, secondary_shape_slide_delta, _SHAPE_PATH_SECONDARY))
-		secondary_shape_slide_delta = 0.0
+		var secondary_duration = max(0.0, secondary_end - secondary_start)
+		new_shape_buttons.append(_new_shape_button_data(secondary_start, secondary_duration, _SHAPE_PATH_SECONDARY))
 		_secondary_shape_slide_start_time = -1.0
 		
 	if Input.is_action_just_pressed("Quit"):
@@ -372,12 +389,15 @@ func _build_save_payload(
 		music_path = _normalize_music_source_path(source_music_path)
 
 	return {
-		"format_version": 1,
+		"format_version": 2,
 		"track_name": track_name,
 		"title": track_title,
 		"music_path": music_path,
 		"bpm": float(bpm),
 		"speed_multiplier": float(speed_multiplier),
+		"timing_unit": "beats",
+		"use_beat_snap": use_beat_snap,
+		"beat_snap_divisor": beat_snap_divisor,
 		"track_speed": float(track_speed),
 		"guitar_buttons": _serialize_guitar_buttons(items_guitar_buttons),
 		"spaceship_buttons": _serialize_guitar_buttons(items_spaceship_buttons),
@@ -395,7 +415,7 @@ func _serialize_guitar_buttons(items: Array[GuitarButtonData]) -> Array[Dictiona
 		if item.material != null:
 			material_path = item.material.resource_path
 		serialized.append({
-			"timestamp": item.timestamp,
+			"beat": _seconds_to_beats(item.timestamp),
 			"pos_x": item.pos_x,
 			"material_path": material_path,
 		})
@@ -406,7 +426,7 @@ func _serialize_guitar_sliders(items: Array[GuitarSliderData]) -> Array[Dictiona
 	for item in items:
 		if item == null:
 			continue
-		serialized.append({"timestamp": item.timestamp})
+		serialized.append({"beat": _seconds_to_beats(item.timestamp)})
 	return serialized
 
 func _serialize_shape_buttons(items: Array[ShapeButtonData]) -> Array[Dictionary]:
@@ -415,9 +435,9 @@ func _serialize_shape_buttons(items: Array[ShapeButtonData]) -> Array[Dictionary
 		if item == null:
 			continue
 		serialized.append({
-			"spawn_timestamp": item.spawn_timestamp,
-			"timestamp": item.timestamp,
-			"time_delta": item.time_delta,
+			"spawn_beat": _seconds_to_beats(item.spawn_timestamp),
+			"beat": _seconds_to_beats(item.timestamp),
+			"duration_beats": _seconds_to_beats(item.time_delta),
 			"path_points": item.path_points,
 		})
 	return serialized
@@ -428,10 +448,20 @@ func _serialize_switches(items: Array[SwitchData]) -> Array[Dictionary]:
 		if item == null:
 			continue
 		serialized.append({
-			"timestamp": item.timestamp,
+			"beat": _seconds_to_beats(item.timestamp),
 			"switch_to": item.switch_to,
 		})
 	return serialized
+
+func _dict_time_to_seconds(item_dict: Dictionary, beat_key: String, seconds_key: String = "timestamp") -> float:
+	if item_dict.has(beat_key):
+		return _beats_to_seconds(_to_float(item_dict.get(beat_key, 0.0)))
+	return _to_float(item_dict.get(seconds_key, 0.0))
+
+func _dict_duration_to_seconds(item_dict: Dictionary, beat_key: String, seconds_key: String = "time_delta") -> float:
+	if item_dict.has(beat_key):
+		return _beats_to_seconds(_to_float(item_dict.get(beat_key, 0.0)))
+	return _to_float(item_dict.get(seconds_key, 0.0))
 
 func _load_existing_track_for_append() -> void:
 	var save_path := _get_save_loc()
@@ -480,7 +510,7 @@ func _deserialize_guitar_buttons(raw_items: Variant) -> Array[GuitarButtonData]:
 			continue
 		var item_dict: Dictionary = raw_item
 		var data := GuitarButtonData.new()
-		data.timestamp = _to_float(item_dict.get("timestamp", 0.0))
+		data.timestamp = _dict_time_to_seconds(item_dict, "beat", "timestamp")
 		data.pos_x = _to_float(item_dict.get("pos_x", 0.0))
 		var material_path := String(item_dict.get("material_path", ""))
 		if not material_path.is_empty():
@@ -501,7 +531,7 @@ func _deserialize_guitar_sliders(raw_items: Variant) -> Array[GuitarSliderData]:
 			continue
 		var item_dict: Dictionary = raw_item
 		var data := GuitarSliderData.new()
-		data.timestamp = _to_float(item_dict.get("timestamp", 0.0))
+		data.timestamp = _dict_time_to_seconds(item_dict, "beat", "timestamp")
 		items.append(data)
 
 	return items
@@ -516,9 +546,12 @@ func _deserialize_shape_buttons(raw_items: Variant) -> Array[ShapeButtonData]:
 			continue
 		var item_dict: Dictionary = raw_item
 		var data := ShapeButtonData.new()
-		data.spawn_timestamp = _to_float(item_dict.get("spawn_timestamp", _to_float(item_dict.get("timestamp", 0.0)) - _SHAPE_FOCUS_DURATION))
-		data.timestamp = _to_float(item_dict.get("timestamp", 0.0))
-		data.time_delta = _to_float(item_dict.get("time_delta", 0.0))
+		data.timestamp = _dict_time_to_seconds(item_dict, "beat", "timestamp")
+		if item_dict.has("spawn_beat"):
+			data.spawn_timestamp = _beats_to_seconds(_to_float(item_dict.get("spawn_beat", 0.0)))
+		else:
+			data.spawn_timestamp = _to_float(item_dict.get("spawn_timestamp", data.timestamp - _SHAPE_FOCUS_DURATION))
+		data.time_delta = max(_SHAPE_MIN_DURATION, _dict_duration_to_seconds(item_dict, "duration_beats", "time_delta"))
 		# Handle old lane-based data for backward compatibility
 		var raw_path = item_dict.get("path_points")
 		if raw_path is Array:
@@ -541,7 +574,7 @@ func _deserialize_switches(raw_items: Variant) -> Array[SwitchData]:
 			continue
 		var item_dict: Dictionary = raw_item
 		var data := SwitchData.new()
-		data.timestamp = _to_float(item_dict.get("timestamp", 0.0))
+		data.timestamp = _dict_time_to_seconds(item_dict, "beat", "timestamp")
 		data.switch_to = _to_int(item_dict.get("switch_to", 0))
 		items.append(data)
 
