@@ -3,7 +3,6 @@
 [ext_resource type="Script" uid="uid://ccfq80xfqkl50" path="res://models/guitar_hitbox/hitbox_controller.gd" id="1_dh7te"]
 [ext_resource type="Material" uid="uid://bxvpw6x3o5oud" path="res://resources/materials/alpha_blue.tres" id="2_7f1a7"]
 [ext_resource type="AudioStream" uid="uid://d31bcyrc65wkv" path="res://resources/sounds/Alchemist HiHat 3.wav" id="2_lewim"]
-[ext_resource type="PackedScene" uid="uid://d38hmqod6y03e" path="res://ui/hand_overlay/hand_overlay.tscn" id="3_lewim"]
 [ext_resource type="Material" uid="uid://dan2vqb314db1" path="res://resources/materials/alpha_red.tres" id="4_lgy8n"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_lewim"]
@@ -117,18 +116,6 @@ draw_pass_1 = SubResource("PlaneMesh_a5flf")
 
 [node name="Click" type="AudioStreamPlayer" parent="Secondary" unique_id=1837854699]
 stream = ExtResource("2_lewim")
-
-[node name="Control" type="Control" parent="." unique_id=854510939]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="HandOverlay" parent="Control" unique_id=1018502388 instance=ExtResource("3_lewim")]
-unique_name_in_owner = true
-layout_mode = 1
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=22169074]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)

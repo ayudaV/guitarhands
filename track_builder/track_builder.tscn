@@ -2,11 +2,13 @@
 
 [ext_resource type="PackedScene" uid="uid://b24xsgq76t3gh" path="res://models/track_mesh/track_mesh.tscn" id="1_1itv1"]
 [ext_resource type="PackedScene" uid="uid://dy2kq360o466m" path="res://models/track_follower/track_follower.tscn" id="2_pxagv"]
+[ext_resource type="PackedScene" uid="uid://d38hmqod6y03e" path="res://ui/hand_overlay/hand_overlay.tscn" id="3_ltygu"]
 [ext_resource type="PackedScene" uid="uid://lvkbbv2xlwrv" path="res://ui/debug/webcam_dashboard.tscn" id="4_3y58e"]
-[ext_resource type="PackedScene" uid="uid://cvvace03caixm" path="res://models/track_builder/track_setup_panel/track_setup_panel.tscn" id="5_3y58e"]
-[ext_resource type="PackedScene" uid="uid://cmm20e73wfa42" path="res://models/track_builder/file_writer/file_writer.tscn" id="6_drlrx"]
-[ext_resource type="PackedScene" uid="uid://blycg583mx1ip" path="res://models/track_builder/playback_controller/PlaybackController.tscn" id="7_ctrl"]
-[ext_resource type="Script" uid="uid://iv8lsisi1y3" path="res://models/track_builder/file_reader/file_reader.gd" id="8_jlcx2"]
+[ext_resource type="PackedScene" uid="uid://cvvace03caixm" path="res://track_builder/track_setup_panel/track_setup_panel.tscn" id="5_3y58e"]
+[ext_resource type="PackedScene" uid="uid://cmm20e73wfa42" path="res://track_builder/file_writer/file_writer.tscn" id="6_drlrx"]
+[ext_resource type="PackedScene" uid="uid://d0lsnx3accbrd" path="res://track_builder/file_loader/file_loader.tscn" id="7_2pksa"]
+[ext_resource type="PackedScene" uid="uid://blycg583mx1ip" path="res://track_builder/playback_controller/PlaybackController.tscn" id="7_ctrl"]
+[ext_resource type="PackedScene" uid="uid://d1h7ouguc4lhs" path="res://track_builder/file_reader/file_reader.tscn" id="9_vr8h0"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_3y58e"]
 sky_top_color = Color(0.34901962, 0.22352941, 0.42352942, 1)
@@ -41,19 +43,19 @@ music = NodePath("../../ConfigLayer/PlaybackController/Music")
 
 [node name="ShapeLayer" type="CanvasLayer" parent="." unique_id=292552023]
 
-[node name="ShapeRoot" type="Node2D" parent="ShapeLayer" unique_id=511805932]
+[node name="ShapeRoot" type="Control" parent="ShapeLayer" unique_id=851485490]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="OverlayLayer" type="CanvasLayer" parent="." unique_id=1246835686]
+
+[node name="HandOverlay" parent="OverlayLayer" unique_id=1018502388 instance=ExtResource("3_ltygu")]
 
 [node name="ConfigLayer" type="CanvasLayer" parent="." unique_id=1368105350]
-
-[node name="WebcamDashboard" parent="ConfigLayer" unique_id=232856454 instance=ExtResource("4_3y58e")]
-size_flags_horizontal = 8
-
-[node name="TrackSetupPanel" parent="ConfigLayer" unique_id=1679004525 instance=ExtResource("5_3y58e")]
-offset_left = -379.0
-offset_top = 19.0
-offset_right = -19.0
-offset_bottom = 292.0
-playback_controller_path = NodePath("../PlaybackController")
 
 [node name="PlaybackController" parent="ConfigLayer" unique_id=214758575 node_paths=PackedStringArray("track_follower", "music", "switch_root") instance=ExtResource("7_ctrl")]
 track_follower = NodePath("../../Track/TrackFollower")
@@ -62,15 +64,45 @@ switch_root = NodePath("../../SwitchRoot")
 
 [node name="Music" type="AudioStreamPlayer" parent="ConfigLayer/PlaybackController" unique_id=113550091]
 
+[node name="MarginContainer" type="MarginContainer" parent="ConfigLayer" unique_id=358555938]
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 15
+
+[node name="WebcamDashboard" parent="ConfigLayer/MarginContainer" unique_id=232856454 instance=ExtResource("4_3y58e")]
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="MarginContainer2" type="MarginContainer" parent="ConfigLayer" unique_id=1053503121]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -254.0
+offset_bottom = 273.0
+grow_horizontal = 0
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 15
+
+[node name="TrackSetupPanel" parent="ConfigLayer/MarginContainer2" unique_id=1679004525 node_paths=PackedStringArray("file_loader", "file_writer", "file_reader", "playback_controller") instance=ExtResource("5_3y58e")]
+layout_mode = 2
+file_loader = NodePath("../../../FileLoader")
+file_writer = NodePath("../../../FileWriter")
+file_reader = NodePath("../../../FileReader")
+playback_controller = NodePath("../../PlaybackController")
+
+[node name="FileLoader" parent="." unique_id=320670669 instance=ExtResource("7_2pksa")]
+
 [node name="FileWriter" parent="." unique_id=569449936 node_paths=PackedStringArray("music", "track_follower") instance=ExtResource("6_drlrx")]
 music = NodePath("../ConfigLayer/PlaybackController/Music")
 record_mode = 1
-bpm = 132
-speed_multiplier = 4.0
 track_follower = NodePath("../Track/TrackFollower")
 
-[node name="FileReader" type="Node" parent="." unique_id=1038628993 node_paths=PackedStringArray("track", "music", "track_follower", "shape_root", "switch_root")]
-script = ExtResource("8_jlcx2")
+[node name="FileReader" parent="." unique_id=163682158 node_paths=PackedStringArray("track", "music", "track_follower", "shape_root", "switch_root") instance=ExtResource("9_vr8h0")]
 track = NodePath("../Track")
 music = NodePath("../ConfigLayer/PlaybackController/Music")
 track_follower = NodePath("../Track/TrackFollower")

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cmm20e73wfa42"]
 
-[ext_resource type="Script" uid="uid://dfqcn1cvoa0sb" path="res://models/track_builder/file_writer/file_writer.gd" id="1_yrs37"]
+[ext_resource type="Script" uid="uid://dfqcn1cvoa0sb" path="res://track_builder/file_writer/file_writer.gd" id="1_yrs37"]
 
 [node name="FileWriter" type="Node" unique_id=569449936]
 script = ExtResource("1_yrs37")

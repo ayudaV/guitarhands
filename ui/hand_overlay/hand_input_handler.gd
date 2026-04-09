@@ -25,8 +25,11 @@ func _process(delta: float) -> void:
 	var resolution: Vector2 = WebcamSocket.get_capture_resolution()
 	var capture_width: int = max(1, int(resolution.x))
 	var capture_height: int = max(1, int(resolution.y))
-	var raw_tips: Array = WebcamSocket.get_thumb_pinky_tips(tracked_hands) if _use_spaceship_mode() else WebcamSocket.get_thumb_index_tips(tracked_hands)
+	var requested_hands: int = 1 if _use_spaceship_mode() else tracked_hands
+	var raw_tips: Array = WebcamSocket.get_thumb_pinky_tips(requested_hands) if _use_spaceship_mode() else WebcamSocket.get_thumb_index_tips(requested_hands)
 	var tips: Array = _fill_lost_hands(raw_tips)
+	if _use_spaceship_mode():
+		tips = _limit_to_single_hand(tips)
 
 	if _overlay != null:
 		_overlay.pinch_threshold_px = pinch_threshold_px
@@ -145,6 +148,33 @@ func _map_capture_to_screen(capture_pos: Vector2, capture_width: int, capture_he
 		capture_pos.x * viewport_size.x / float(capture_width),
 		capture_pos.y * viewport_size.y / float(capture_height)
 	)
+
+func _limit_to_single_hand(tips: Array) -> Array:
+	var selected_hand: Dictionary = {}
+	var selected_index: int = -1
+
+	for hand_data in tips:
+		if typeof(hand_data) != TYPE_DICTIONARY:
+			continue
+		var hand_dict: Dictionary = hand_data
+		var hand_index: int = int(hand_dict.get("hand_index", -1))
+		if hand_index < 0:
+			continue
+		if selected_index == -1 or hand_index < selected_index:
+			selected_index = hand_index
+			selected_hand = hand_dict
+
+	if selected_index == -1:
+		_last_seen_ms_by_hand.clear()
+		_last_tip_by_hand.clear()
+		return []
+
+	for hand_key in _last_tip_by_hand.keys():
+		if int(hand_key) != selected_index:
+			_last_tip_by_hand.erase(hand_key)
+			_last_seen_ms_by_hand.erase(hand_key)
+
+	return [selected_hand]
 
 func _use_spaceship_mode() -> bool:
 	return _overlay != null and _overlay.overlay_mode == HandOverlay.OverlayMode.SPACESHIP

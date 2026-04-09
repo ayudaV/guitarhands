@@ -20,6 +20,22 @@ enum OverlayMode {
 var _tips: Array = []
 var _capture_size: Vector2 = Vector2.ONE
 
+func _ready() -> void:
+	# Connect to global mode changes and update overlay accordingly
+	Globals.mode_changed.connect(_on_mode_changed)
+	# Set initial overlay mode based on current game mode
+	_on_mode_changed(Globals.current_mode)
+
+func _on_mode_changed(new_mode: Globals.Mode) -> void:
+	# Update overlay mode when game mode changes
+	match new_mode:
+		Globals.Mode.SPACESHIP:
+			overlay_mode = OverlayMode.SPACESHIP
+		Globals.Mode.GUITAR:
+			overlay_mode = OverlayMode.DEFAULT
+		Globals.Mode.SHAPES:
+			overlay_mode = OverlayMode.DEFAULT
+
 func update_hands(tips: Array, capture_width: int, capture_height: int) -> void:
 	_tips = tips
 	_capture_size = Vector2(max(1, capture_width), max(1, capture_height))

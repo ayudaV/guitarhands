@@ -7,6 +7,8 @@ extends CharacterBody3D
 @export var mesh_incline_lerp_speed: float = 8.0
 
 @onready var ship_mesh: Node3D = $spaceship
+@onready var hit_particles: GPUParticles3D = $GPUParticles3D
+@onready var hit_sound: AudioStreamPlayer = $Click
 var turn_rotation := 0.0
 var normalized_turn: float = 0.0
 
@@ -49,4 +51,10 @@ func _get_turn_rotation() -> float:
 
 
 func _on_area_3d_body_entered(body: Node3D) -> void:
-	pass # Replace with function body.
+	if body == null or not body.is_in_group("Button"):
+		return
+
+	Globals.add_score(1)
+	body.get_parent().queue_free()
+	hit_particles.emitting = true
+	hit_sound.play()

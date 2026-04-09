@@ -14,6 +14,8 @@ enum RecordMode {
 @export var track_follower : TrackFollower
 @export var current_mode : Globals.Mode
 
+var track_speed := 0.0
+
 @onready var blue_button   : Material = preload("res://resources/materials/blue_button.tres")
 @onready var green_button  : Material = preload("res://resources/materials/green_button.tres")
 @onready var orange_button : Material = preload("res://resources/materials/orange_button.tres")
@@ -21,14 +23,14 @@ enum RecordMode {
 @onready var yellow_button : Material = preload("res://resources/materials/yellow_button.tres")
 @onready var purple_button : Material = preload("res://resources/materials/purple_button.tres")
 
-var save_loc : String = "user://tracks/" + track_name + "/game_data.json"
-
 var new_guitar_buttons: Array[GuitarButtonData] = []
+var new_spaceship_buttons: Array[GuitarButtonData] = []
 var new_guitar_sliders: Array[GuitarSliderData] = []
 var new_shape_buttons: Array[ShapeButtonData] = []
 var new_switchs: Array[SwitchData] = []
 
 var guitar_buttons : Array[GuitarButtonData] = []
+var spaceship_buttons : Array[GuitarButtonData] = []
 var guitar_sliders: Array[GuitarSliderData] = []
 var shape_buttons: Array[ShapeButtonData] = []
 var switchs: Array[SwitchData] = []
@@ -36,57 +38,65 @@ var switchs: Array[SwitchData] = []
 var timer := 0.0
 var main_shape_slide_delta := 0.0
 var secondary_shape_slide_delta := 0.0
+var _spaceship_button_placing := false
+var _spaceship_next_button_time := -1.0
+var _spaceship_last_button_time := -1.0
+var _pending_spaceship_button_trigger := false
 
 const _TRACKS_DIR := "user://tracks"
 const _DATA_FILE_NAME := "data.json"
 const _LEGACY_DATA_FILE_NAME := "game_data.json"
 const _MUSIC_FILE_NAME := "music.wav"
+const _SPACESHIP_BEAT_DIVISOR := 2.0
+const _TIME_EPSILON := 0.000001
 
 func _ready() -> void:
 	_prepare_track_storage()
 	if record_mode == RecordMode.APPEND:
 		_load_existing_track_for_append()
 	_sync_music_stream()
+	_sync_track_speed()
 
 func prepare_track() -> void:
 	_prepare_track_storage()
 	_sync_music_stream()
+	_sync_track_speed()
 
-func configure_new_track(new_track_name: String, new_track_title: String, new_bpm: int, new_speed_multiplier: float, new_music_source_path: String) -> void:
-	track_name = new_track_name.strip_edges()
-	track_title = new_track_title.strip_edges()
-	bpm = max(1, new_bpm)
-	speed_multiplier = new_speed_multiplier
-	source_music_path = new_music_source_path.strip_edges()
+func save_track() -> void:
+	_save()
+
+func discard_unsaved_changes() -> void:
 	new_guitar_buttons.clear()
+	new_spaceship_buttons.clear()
 	new_guitar_sliders.clear()
 	new_shape_buttons.clear()
 	new_switchs.clear()
-	guitar_buttons.clear()
-	guitar_sliders.clear()
-	shape_buttons.clear()
-	switchs.clear()
+	main_shape_slide_delta = 0.0
+	secondary_shape_slide_delta = 0.0
+	_spaceship_button_placing = false
+	_spaceship_next_button_time = -1.0
+	_spaceship_last_button_time = -1.0
+	_pending_spaceship_button_trigger = false
+
+func import_track_data(data: Dictionary) -> void:
+	track_name = String(data.get("track_name", track_name)).strip_edges()
+	track_title = String(data.get("title", track_title)).strip_edges()
+	bpm = max(1, _to_int(data.get("bpm", bpm)))
+	speed_multiplier = _to_float(data.get("speed_multiplier", speed_multiplier))
+	source_music_path = String(data.get("music_path", source_music_path)).strip_edges()
+	guitar_buttons = _deserialize_guitar_buttons(data.get("guitar_buttons", []))
+	spaceship_buttons = _deserialize_guitar_buttons(data.get("spaceship_buttons", []))
+	guitar_sliders = _deserialize_guitar_sliders(data.get("guitar_sliders", []))
+	shape_buttons = _deserialize_shape_buttons(data.get("shape_buttons", []))
+	switchs = _deserialize_switches(data.get("switchs", []))
+	new_guitar_buttons.clear()
+	new_spaceship_buttons.clear()
+	new_guitar_sliders.clear()
+	new_shape_buttons.clear()
+	new_switchs.clear()
+	_sync_track_speed()
 	_prepare_track_storage()
 	_sync_music_stream()
-
-func load_existing_track(new_track_name: String) -> bool:
-	track_name = new_track_name.strip_edges()
-	if track_name.is_empty():
-		return false
-
-	var save_path := _get_save_loc()
-	if not FileAccess.file_exists(save_path) and FileAccess.file_exists(_get_legacy_save_loc()):
-		save_path = _get_legacy_save_loc()
-	if not FileAccess.file_exists(save_path):
-		return false
-
-	new_guitar_buttons.clear()
-	new_guitar_sliders.clear()
-	new_shape_buttons.clear()
-	new_switchs.clear()
-	_load_existing_track_for_append()
-	_sync_music_stream()
-	return FileAccess.file_exists(_get_save_loc()) or FileAccess.file_exists(_get_legacy_save_loc())
 
 func _prepare_track_storage() -> void:
 	if track_name.is_empty():
@@ -101,9 +111,6 @@ func _prepare_track_storage() -> void:
 		_write_initial_data_file(music_path)
 
 func _sync_music_stream() -> void:
-	if music == null:
-		return
-
 	var local_music_path := _get_music_loc()
 	if FileAccess.file_exists(local_music_path):
 		var loaded_local_music := _load_audio_stream(local_music_path)
@@ -118,6 +125,9 @@ func _sync_music_stream() -> void:
 	var loaded_fallback_music := _load_audio_stream(fallback_music_path)
 	if loaded_fallback_music != null:
 		music.stream = loaded_fallback_music
+
+func _sync_track_speed() -> void:
+	track_speed = float(bpm) / 60.0 * float(speed_multiplier)
 
 func _get_track_dir() -> String:
 	return "%s/%s" % [_TRACKS_DIR, track_name]
@@ -168,14 +178,21 @@ func _write_initial_data_file(music_path: String) -> void:
 		push_warning("FileWriter: failed to create save file at %s" % _get_save_loc())
 		return
 
-	file.store_string(JSON.stringify(_build_save_payload([], [], [], [], music_path), "\t"))
+	file.store_string(JSON.stringify(_build_save_payload([], [], [], [], [], music_path), "\t"))
 	file.close()
 
 func _process(delta: float) -> void:
-	if music == null:
-		return
 	timer = music.get_playback_position()
-	var snapped_time = snapped(timer, 0.01)
+	var snapped_time = snapped(timer, 0.001)
+
+	if Input.is_action_just_pressed("SpaceshipBPlace"):
+		_pending_spaceship_button_trigger = true
+
+	if _pending_spaceship_button_trigger and Globals.current_mode == Globals.Mode.SPACESHIP and _is_music_advancing():
+		_start_spaceship_button_placement(timer)
+		_pending_spaceship_button_trigger = false
+
+	_update_spaceship_button_placement(timer)
 	
 	if Input.is_action_just_pressed("MRTrack"):
 		new_guitar_buttons.append(_new_guitar_button_data(snapped_time, 2, orange_button))
@@ -210,37 +227,80 @@ func _process(delta: float) -> void:
 		new_shape_buttons.append(_new_shape_button_data(snapped_time, secondary_shape_slide_delta))
 		secondary_shape_slide_delta = 0.0
 		
-	if Globals.current_mode == Globals.Mode.SPACESHIP and int(snapped_time*60*8) % bpm == 0:
-		new_guitar_buttons.append(_new_guitar_button_data(snapped_time, track_follower.get_node("Spaceship").position.x, purple_button))
-
 	if Input.is_action_just_pressed("Quit"):
 		_save()
+
+func _start_spaceship_button_placement(current_time: float) -> void:
+	if Globals.current_mode != Globals.Mode.SPACESHIP:
+		return
+	if not _is_music_advancing():
+		return
+
+	_spaceship_button_placing = true
+	var interval := _get_spaceship_button_interval()
+	_spaceship_next_button_time = ceil(current_time / interval) * interval
+	_spaceship_last_button_time = -1.0
+
+func _update_spaceship_button_placement(current_time: float) -> void:
+	if not _spaceship_button_placing:
+		return
+	if Globals.current_mode != Globals.Mode.SPACESHIP:
+		return
+	if not _is_music_advancing():
+		return
+	if music.stream == null:
+		return
+
+	var interval := _get_spaceship_button_interval()
+	if _spaceship_next_button_time < 0.0:
+		_spaceship_next_button_time = ceil(current_time / interval) * interval
+
+	while current_time + _TIME_EPSILON >= _spaceship_next_button_time:
+		_place_spaceship_button(_spaceship_next_button_time)
+		_spaceship_next_button_time += interval
+
+func _place_spaceship_button(timestamp: float) -> void:
+	if is_equal_approx(_spaceship_last_button_time, timestamp):
+		return
+
+	_spaceship_last_button_time = timestamp
+	new_spaceship_buttons.append(_new_guitar_button_data(timestamp, track_follower.spaceship.position.x, purple_button))
+
+func _get_spaceship_button_interval() -> float:
+	return 60.0 / float(bpm) / _SPACESHIP_BEAT_DIVISOR
+
+func _is_music_advancing() -> bool:
+	return music.playing and not music.stream_paused
 		
 func _save():
 	print("saving file")
+	_sync_track_speed()
 
 	if record_mode == RecordMode.KEEP:
 		return
 	if record_mode == RecordMode.APPEND:
 		guitar_buttons += new_guitar_buttons
+		spaceship_buttons += new_spaceship_buttons
 		guitar_sliders += new_guitar_sliders
 		shape_buttons += new_shape_buttons
 		switchs += new_switchs
 		
 		guitar_buttons.sort_custom(func(a: GuitarButtonData, b: GuitarButtonData): return a.timestamp < b.timestamp)
+		spaceship_buttons.sort_custom(func(a: GuitarButtonData, b: GuitarButtonData): return a.timestamp < b.timestamp)
 		guitar_sliders.sort_custom(func(a: GuitarSliderData, b: GuitarSliderData): return a.timestamp < b.timestamp)
 		shape_buttons.sort_custom(func(a: ShapeButtonData, b: ShapeButtonData): return a.timestamp < b.timestamp)
 		switchs.sort_custom(func(a: SwitchData, b: SwitchData): return a.timestamp < b.timestamp)
 
 	
 	elif  record_mode == RecordMode.OVERWRITE:
-		guitar_buttons = new_guitar_buttons
-		guitar_sliders = new_guitar_sliders
-		shape_buttons = new_shape_buttons
-		switchs = new_switchs
+		guitar_buttons = new_guitar_buttons.duplicate()
+		spaceship_buttons = new_spaceship_buttons.duplicate()
+		guitar_sliders = new_guitar_sliders.duplicate()
+		shape_buttons = new_shape_buttons.duplicate()
+		switchs = new_switchs.duplicate()
 
 	_prepare_track_storage()
-	var data := _build_save_payload(guitar_buttons, guitar_sliders, shape_buttons, switchs)
+	var data := _build_save_payload(guitar_buttons, spaceship_buttons, guitar_sliders, shape_buttons, switchs)
 	var file := FileAccess.open(_get_save_loc(), FileAccess.WRITE)
 	if file == null:
 		push_warning("FileWriter: failed to open save path %s" % _get_save_loc())
@@ -248,10 +308,8 @@ func _save():
 
 	file.store_string(JSON.stringify(data, "\t"))
 	file.close()
-	var result := OK
-	print(result)
-	if result == OK:
-		print("Game Saved!")
+	discard_unsaved_changes()
+	print("Game Saved!")
 		
 
 
@@ -280,6 +338,7 @@ func _new_switch_data(timestamp: float, switch_to: int) -> SwitchData:
 
 func _build_save_payload(
 	items_guitar_buttons: Array[GuitarButtonData],
+	items_spaceship_buttons: Array[GuitarButtonData],
 	items_guitar_sliders: Array[GuitarSliderData],
 	items_shape_buttons: Array[ShapeButtonData],
 	items_switchs: Array[SwitchData],
@@ -288,7 +347,7 @@ func _build_save_payload(
 	var music_path := music_path_override
 	if music_path.is_empty():
 		music_path = _get_music_loc()
-	if music_path.is_empty() and music != null and music.stream != null:
+	if music_path.is_empty() and music.stream != null:
 		music_path = music.stream.resource_path
 	if music_path.is_empty():
 		music_path = _normalize_music_source_path(source_music_path)
@@ -300,7 +359,9 @@ func _build_save_payload(
 		"music_path": music_path,
 		"bpm": float(bpm),
 		"speed_multiplier": float(speed_multiplier),
+		"track_speed": float(track_speed),
 		"guitar_buttons": _serialize_guitar_buttons(items_guitar_buttons),
+		"spaceship_buttons": _serialize_guitar_buttons(items_spaceship_buttons),
 		"guitar_sliders": _serialize_guitar_sliders(items_guitar_sliders),
 		"shape_buttons": _serialize_shape_buttons(items_shape_buttons),
 		"switchs": _serialize_switches(items_switchs),
@@ -371,26 +432,7 @@ func _load_existing_track_for_append() -> void:
 		push_warning("FileWriter: invalid JSON in %s" % save_path)
 		return
 
-	var data: Dictionary = parse.data
-	track_title = String(data.get("title", track_title if not track_title.is_empty() else track_name))
-	var loaded_music_path := String(data.get("music_path", ""))
-	bpm = _to_int(data.get("bpm", bpm))
-	speed_multiplier = _to_float(data.get("speed_multiplier", speed_multiplier))
-
-	if music != null and not loaded_music_path.is_empty():
-		var loaded_music := _load_audio_stream(loaded_music_path)
-		if loaded_music != null:
-			music.stream = loaded_music
-
-	guitar_buttons = _deserialize_guitar_buttons(data.get("guitar_buttons", []))
-	guitar_sliders = _deserialize_guitar_sliders(data.get("guitar_sliders", []))
-	shape_buttons = _deserialize_shape_buttons(data.get("shape_buttons", []))
-	switchs = _deserialize_switches(data.get("switchs", []))
-
-	if FileAccess.file_exists(_get_music_loc()) and music != null:
-		var local_music := _load_audio_stream(_get_music_loc())
-		if local_music != null:
-			music.stream = local_music
+	import_track_data(parse.data)
 
 func _load_audio_stream(path: String) -> AudioStream:
 	var normalized_path := _normalize_music_source_path(path)

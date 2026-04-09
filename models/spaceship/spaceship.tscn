@@ -3,6 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://dfq0hvf8487y1" path="res://models/spaceship/spaceship.glb" id="1_hya0t"]
 [ext_resource type="Script" uid="uid://qujhpi2tk6bu" path="res://models/spaceship/spaceship.gd" id="2_shipctrl"]
 [ext_resource type="PackedScene" uid="uid://d38hmqod6y03e" path="res://ui/hand_overlay/hand_overlay.tscn" id="3_4ny6j"]
+[ext_resource type="AudioStream" uid="uid://d31bcyrc65wkv" path="res://resources/sounds/Alchemist HiHat 3.wav" id="4_click"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ggrps"]
 resource_name = "White.002"
@@ -76,6 +77,30 @@ shadow_mesh = SubResource("ArrayMesh_h5pcc")
 radius = 0.08544922
 height = 0.44421387
 
+[sub_resource type="Curve" id="Curve_spaceship"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_spaceship_scale"]
+curve = SubResource("Curve_spaceship")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_spaceship"]
+direction = Vector3(0, 1, 0)
+spread = 35.0
+initial_velocity_min = 1.0
+initial_velocity_max = 4.0
+scale_curve = SubResource("CurveTexture_spaceship_scale")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_spaceship"]
+emission_enabled = true
+emission = Color(0.9999998, 0.3115298, 0.8884111, 1)
+emission_energy_multiplier = 4.0
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_spaceship"]
+material = SubResource("StandardMaterial3D_spaceship")
+size = Vector2(0.1, 0.1)
+orientation = 2
+
 [node name="Spaceship" type="CharacterBody3D" unique_id=1728781178]
 collision_layer = 0
 collision_mask = 0
@@ -99,6 +124,19 @@ shape = SubResource("CapsuleShape3D_hya0t")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D" unique_id=1928594659]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0, 0)
 shape = SubResource("CapsuleShape3D_hya0t")
+
+[node name="GPUParticles3D" type="GPUParticles3D" parent="." unique_id=145222390]
+transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 0, 0.2, 0)
+emitting = false
+amount = 16
+lifetime = 0.34
+one_shot = true
+explosiveness = 1.0
+process_material = SubResource("ParticleProcessMaterial_spaceship")
+draw_pass_1 = SubResource("PlaneMesh_spaceship")
+
+[node name="Click" type="AudioStreamPlayer" parent="." unique_id=145222391]
+stream = ExtResource("4_click")
 
 [node name="HandOverlay" parent="." unique_id=1018502388 instance=ExtResource("3_4ny6j")]
 overlay_mode = 1

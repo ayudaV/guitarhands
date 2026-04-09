@@ -1,0 +1,66 @@
+[gd_scene format=3 uid="uid://blycg583mx1ip"]
+
+[ext_resource type="Script" uid="uid://cjf71q0ap8loj" path="res://track_builder/playback_controller/playback_controller.gd" id="1_sc2c4"]
+[ext_resource type="Texture2D" path="res://resources/icons/play-buttton.png" id="2_play"]
+[ext_resource type="Texture2D" path="res://resources/icons/pause.png" id="3_pause"]
+
+[node name="PlaybackController" type="Control" unique_id=214758575]
+layout_mode = 3
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
+script = ExtResource("1_sc2c4")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1321560423]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -115.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 50
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=286511715]
+layout_mode = 2
+
+[node name="Buttons" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=130114936]
+layout_mode = 2
+
+[node name="PlayButton" type="Button" parent="MarginContainer/VBoxContainer/Buttons" unique_id=146413650]
+layout_mode = 2
+custom_minimum_size = Vector2(36, 36)
+flat = true
+expand_icon = true
+icon = ExtResource("2_play")
+text = ""
+theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_hover_pressed_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_disabled_color = Color(1, 1, 1, 0.4)
+
+[node name="PauseButton" type="Button" parent="MarginContainer/VBoxContainer/Buttons" unique_id=587600535]
+layout_mode = 2
+custom_minimum_size = Vector2(36, 36)
+flat = true
+expand_icon = true
+icon = ExtResource("3_pause")
+text = ""
+theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_hover_pressed_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_disabled_color = Color(1, 1, 1, 0.4)
+
+[node name="ProgressBar" type="HSlider" parent="MarginContainer/VBoxContainer" unique_id=2006636554]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+size_flags_vertical = 8

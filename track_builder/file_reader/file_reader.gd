@@ -22,10 +22,8 @@ func _ready() -> void:
 
 func reload_track() -> void:
 	_clear_spawned_nodes()
-	if music != null:
-		music.stop()
-	if track_follower != null:
-		track_follower.is_playing = false
+	music.stop()
+	track_follower.configure_transport(track_speed, false)
 
 	var save_loc := _get_save_loc()
 
@@ -46,20 +44,17 @@ func reload_track() -> void:
 
 	var data: Dictionary = parse.data
 	track_title = String(data.get("title", track_title if not track_title.is_empty() else track_name))
-	track_speed = _to_float(data.get("bpm", 120.0)) / 60.0 * _to_float(data.get("speed_multiplier", 1.0))
+	var bpm := _to_float(data.get("bpm", 120.0))
+	var speed_multiplier := _to_float(data.get("speed_multiplier", 1.0))
+	track_speed = _to_float(data.get("track_speed", bpm / 60.0 * speed_multiplier))
 
-	if music != null and data.has("music_path"):
-		var music_path := String(data.get("music_path", ""))
-		if not music_path.is_empty():
-			var loaded_music := _load_audio_stream(music_path)
-			if loaded_music != null:
-				music.stream = loaded_music
+	var music_path := String(data.get("music_path", ""))
+	var loaded_music := _load_audio_stream(music_path)
+	music.stream = loaded_music
 
-	if track_follower != null:
-		track_follower.track_speed = track_speed
-		track_follower.music = music
-
+	track_follower.configure_transport(track_speed, false)
 	_spawn_guitar_buttons(data.get("guitar_buttons", []))
+	_spawn_spaceship_buttons(data.get("spaceship_buttons", []))
 	_spawn_guitar_sliders(data.get("guitar_sliders", []))
 	_spawn_shape_buttons(data.get("shape_buttons", []))
 	_spawn_switchs(data.get("switchs", []))
@@ -82,10 +77,23 @@ func _load_audio_stream(path: String) -> AudioStream:
 	return null
 
 func _spawn_guitar_buttons(items: Array) -> void:
-	if track == null:
-		push_warning("FileReader: track not set, cannot spawn guitar buttons")
-		return
+	for item in items:
+		if not (item is Dictionary):
+			continue
+		var item_dict: Dictionary = item
+		var button = _guitar_button_scene.instantiate() as GuitarButton
+		button.timestamp = _to_float(item_dict.get("timestamp", 0.0))
+		button.pos_x = _to_float(item_dict.get("pos_x", 0.0))
+		var material_path := String(item_dict.get("material_path", ""))
+		if not material_path.is_empty():
+			var loaded_material := load(material_path)
+			if loaded_material is Material:
+				button.material = loaded_material as Material
+		button.track_speed = track_speed
+		button.add_to_group(_SPAWNED_GROUP)
+		track.add_child(button)
 
+func _spawn_spaceship_buttons(items: Array) -> void:
 	for item in items:
 		if not (item is Dictionary):
 			continue
@@ -103,10 +111,6 @@ func _spawn_guitar_buttons(items: Array) -> void:
 		track.add_child(button)
 
 func _spawn_guitar_sliders(items: Array) -> void:
-	if track == null:
-		push_warning("FileReader: track not set, cannot spawn guitar sliders")
-		return
-
 	for item in items:
 		if not (item is Dictionary):
 			continue
@@ -117,10 +121,6 @@ func _spawn_guitar_sliders(items: Array) -> void:
 		track.add_child(slider)
 
 func _spawn_shape_buttons(items: Array) -> void:
-	if shape_root == null:
-		push_warning("FileReader: shape_root not set, cannot spawn shape buttons")
-		return
-
 	for item in items:
 		if not (item is Dictionary):
 			continue

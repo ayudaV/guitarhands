@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://cvvace03caixm"]
 
-[ext_resource type="Script" uid="uid://ctnseipgccmgv" path="res://models/track_builder/track_setup_panel/create_track_panel.gd" id="1_i5auo"]
+[ext_resource type="Script" uid="uid://ctnseipgccmgv" path="res://track_builder/track_setup_panel/create_track_panel.gd" id="1_i5auo"]
+[ext_resource type="Script" uid="uid://dl102r3c2873c" path="res://track_builder/file_loader/file_loader.gd" id="2_f4l0d"]
 
 [node name="TrackSetupPanel" type="PanelContainer" unique_id=1679004525]
 anchors_preset = 1
@@ -10,8 +11,6 @@ offset_left = -360.0
 offset_bottom = 273.0
 grow_horizontal = 0
 script = ExtResource("1_i5auo")
-file_writer_path = NodePath("../../FileWriter")
-file_reader_path = NodePath("../../FileReader")
 
 [node name="MarginContainer" type="MarginContainer" parent="." unique_id=1472925098]
 layout_mode = 2
@@ -40,6 +39,7 @@ text = "Folder"
 [node name="TrackNameEdit" type="LineEdit" parent="MarginContainer/VBoxContainer/TrackNameRow" unique_id=1318907352]
 layout_mode = 2
 size_flags_horizontal = 3
+text = "ado_show"
 placeholder_text = "song-folder-name"
 
 [node name="TrackTitleRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1651844072]
@@ -72,6 +72,37 @@ min_value = 1.0
 max_value = 999.0
 value = 120.0
 
+[node name="SpeedMultiplierRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1291515528]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SpeedMultiplierLabel" type="Label" parent="MarginContainer/VBoxContainer/SpeedMultiplierRow" unique_id=1291515529]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "Speed"
+
+[node name="SpeedMultiplierSpinBox" type="SpinBox" parent="MarginContainer/VBoxContainer/SpeedMultiplierRow" unique_id=1291515530]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.01
+step = 0.01
+value = 1.0
+
+[node name="TrackSpeedRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1291515531]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TrackSpeedLabel" type="Label" parent="MarginContainer/VBoxContainer/TrackSpeedRow" unique_id=1291515532]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "Track Speed"
+
+[node name="TrackSpeedEdit" type="LineEdit" parent="MarginContainer/VBoxContainer/TrackSpeedRow" unique_id=1291515533]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "0.000"
+editable = false
+
 [node name="MusicRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=49219754]
 layout_mode = 2
 theme_override_constants/separation = 8
@@ -95,15 +126,20 @@ text = "Browse"
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="CreateButton" type="Button" parent="MarginContainer/VBoxContainer/ActionsRow" unique_id=46754415]
+[node name="SaveButton" type="Button" parent="MarginContainer/VBoxContainer/ActionsRow" unique_id=46754415]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Create Track"
+text = "Save Track"
 
 [node name="LoadButton" type="Button" parent="MarginContainer/VBoxContainer/ActionsRow" unique_id=168408753]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Load Track"
+
+[node name="ResetButton" type="Button" parent="MarginContainer/VBoxContainer/ActionsRow" unique_id=2084659174]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Reset"
 
 [node name="StatusLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1937755386]
 layout_mode = 2
@@ -113,3 +149,6 @@ text = "Ready"
 title = "Open a File"
 file_mode = 0
 access = 2
+
+[node name="FileLoader" type="Node" parent="." unique_id=1999401123]
+script = ExtResource("2_f4l0d")

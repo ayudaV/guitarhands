@@ -7,7 +7,6 @@ class_name WebcamDashboard
 @export var show_landmarks_default: bool = false
 
 @onready var _camera_view: TextureRect = %CameraView
-#@onready var _overlay: HandOverlay = %HandOverlay
 @onready var _webcam_list: OptionButton = %WebcamList
 @onready var _show_landmarks_toggle: CheckBox = %ShowLandmarks
 @onready var _fit_mode_selector: OptionButton = %FitMode
@@ -44,12 +43,6 @@ func _process(delta: float) -> void:
 	var texture: ImageTexture = WebcamSocket.get_image_texture(_show_landmarks_toggle.button_pressed)
 	if texture != null:
 		_camera_view.texture = texture
-
-	#var resolution: Vector2 = WebcamSocket.get_capture_resolution()
-	#var capture_width: int = max(1, int(resolution.x))
-	#var capture_height: int = max(1, int(resolution.y))
-	#var tips: Array = WebcamSocket.get_thumb_index_tips(tracked_hands)
-	#_overlay.update_hands(tips, capture_width, capture_height)
 
 	_latency_all.text = "Latency All: %.2f ms" % WebcamSocket.get_latency("all")
 	_latency_capture.text = "Capture: %.2f ms" % WebcamSocket.get_latency("image_capture")

@@ -3,10 +3,9 @@
 [ext_resource type="Theme" uid="uid://ccukrq0j1ung5" path="res://resources/themes/shapes_mode_theme.tres" id="1_bj7xr"]
 [ext_resource type="Script" uid="uid://nxiub32plco5" path="res://models/shapes/area_2d.gd" id="5_sprfh"]
 [ext_resource type="AudioStream" uid="uid://d31bcyrc65wkv" path="res://resources/sounds/Alchemist HiHat 3.wav" id="6_a4lpf"]
-[ext_resource type="PackedScene" uid="uid://d38hmqod6y03e" path="res://ui/hand_overlay/hand_overlay.tscn" id="9_yrga7"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_wa0iy"]
-radius = 40.0
+radius = 80.0
 
 [node name="Shapes" type="Control" unique_id=430826248]
 custom_minimum_size = Vector2(1920, 1080)
@@ -41,9 +40,6 @@ shape = SubResource("CircleShape2D_wa0iy")
 
 [node name="Click" type="AudioStreamPlayer" parent="Secondary" unique_id=1473045775]
 stream = ExtResource("6_a4lpf")
-
-[node name="HandOverlay" parent="." unique_id=1018502388 instance=ExtResource("9_yrga7")]
-layout_mode = 1
 
 [connection signal="body_entered" from="Main" to="Main" method="_on_body_entered"]
 [connection signal="body_exited" from="Main" to="Main" method="_on_body_exited"]

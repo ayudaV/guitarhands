@@ -5,7 +5,11 @@
 [ext_resource type="Texture2D" uid="uid://ct4rvf0h6ws3s" path="res://resources/icons/shapes_circle_guitarhands.png" id="2_qv6ui"]
 [ext_resource type="AudioStream" uid="uid://d8le7n1uvteh" path="res://resources/sounds/Alchemist HiHat 7.wav" id="3_hyggs"]
 
-[sub_resource type="Curve2D" id="Curve2D_3ylq0"]
+[sub_resource type="Curve2D" id="Curve2D_u18s4"]
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+}
+point_count = 2
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_sprfh"]
 radius = 40.0
@@ -40,7 +44,7 @@ alpha_curve = SubResource("CurveTexture_nsg67")
 emission_curve = SubResource("CurveTexture_xwpya")
 
 [node name="ShapeSlider" type="Path2D" unique_id=1461282306]
-curve = SubResource("Curve2D_3ylq0")
+curve = SubResource("Curve2D_u18s4")
 script = ExtResource("1_u18s4")
 
 [node name="PathFollow2D" type="PathFollow2D" parent="." unique_id=1985958079]
