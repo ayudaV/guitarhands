@@ -29,9 +29,13 @@ func miss_click():
 
 
 func _on_body_exited(body: Node2D) -> void:
-	body.get_parent().get_parent().remove()
+	var slider := body.get_parent().get_parent()
+	if slider != null and slider.has_method("break_slide_interaction"):
+		slider.break_slide_interaction()
 
 
 func _on_body_entered(body: Node2D) -> void:
-	body.get_parent().get_parent().moving = true
+	var slider := body.get_parent().get_parent()
+	if slider != null and slider.has_method("start_slide_interaction"):
+		slider.start_slide_interaction()
 	$Click.play()

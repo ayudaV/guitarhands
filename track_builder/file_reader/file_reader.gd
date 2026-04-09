@@ -126,8 +126,18 @@ func _spawn_shape_buttons(items: Array) -> void:
 			continue
 		var item_dict: Dictionary = item
 		var shape_button = _shape_button_scene.instantiate() as ShapesButton
+		shape_button.music = music
+		shape_button.spawn_timestamp = _to_float(item_dict.get("spawn_timestamp", _to_float(item_dict.get("timestamp", 0.0)) - 0.8))
 		shape_button.timestamp = _to_float(item_dict.get("timestamp", 0.0))
 		shape_button.time_delta = _to_float(item_dict.get("time_delta", 0.0))
+		# Convert path points array to Curve2D
+		var path_curve := Curve2D.new()
+		var path_points = item_dict.get("path_points", [])
+		if path_points is Array:
+			for point in path_points:
+				if point is Array and point.size() >= 2:
+					path_curve.add_point(Vector2(_to_float(point[0]), _to_float(point[1])))
+		shape_button.set_path(path_curve)
 		shape_button.add_to_group(_SPAWNED_GROUP)
 		shape_root.add_child(shape_button)
 

@@ -38,6 +38,8 @@ var switchs: Array[SwitchData] = []
 var timer := 0.0
 var main_shape_slide_delta := 0.0
 var secondary_shape_slide_delta := 0.0
+var _main_shape_slide_start_time := -1.0
+var _secondary_shape_slide_start_time := -1.0
 var _spaceship_button_placing := false
 var _spaceship_next_button_time := -1.0
 var _spaceship_last_button_time := -1.0
@@ -47,8 +49,13 @@ const _TRACKS_DIR := "user://tracks"
 const _DATA_FILE_NAME := "data.json"
 const _LEGACY_DATA_FILE_NAME := "game_data.json"
 const _MUSIC_FILE_NAME := "music.wav"
+const _SHAPE_MIN_DURATION := 0.05
+const _SHAPE_FOCUS_DURATION := 0.8
 const _SPACESHIP_BEAT_DIVISOR := 2.0
 const _TIME_EPSILON := 0.000001
+# Default shape paths
+const _SHAPE_PATH_MAIN := [[960.0 - 300.0, 540.0 - 100.0], [960.0 + 300.0, 540.0 - 100.0]]
+const _SHAPE_PATH_SECONDARY := [[960.0 + 300.0, 540.0 + 100.0], [960.0 - 300.0, 540.0 + 100.0]]
 
 func _ready() -> void:
 	_prepare_track_storage()
@@ -73,6 +80,8 @@ func discard_unsaved_changes() -> void:
 	new_switchs.clear()
 	main_shape_slide_delta = 0.0
 	secondary_shape_slide_delta = 0.0
+	_main_shape_slide_start_time = -1.0
+	_secondary_shape_slide_start_time = -1.0
 	_spaceship_button_placing = false
 	_spaceship_next_button_time = -1.0
 	_spaceship_last_button_time = -1.0
@@ -217,15 +226,23 @@ func _process(delta: float) -> void:
 		Globals.switch_mode(Globals.Mode.SHAPES)
 
 	if Input.is_action_pressed("MainShapeSlide"):
+		if _main_shape_slide_start_time < 0.0:
+			_main_shape_slide_start_time = snapped_time
 		main_shape_slide_delta += delta
 	if Input.is_action_just_released("MainShapeSlide"):
-		new_shape_buttons.append(_new_shape_button_data(snapped_time, main_shape_slide_delta))
+		var main_start = _main_shape_slide_start_time if _main_shape_slide_start_time >= 0.0 else snapped_time
+		new_shape_buttons.append(_new_shape_button_data(main_start, main_shape_slide_delta, _SHAPE_PATH_MAIN))
 		main_shape_slide_delta = 0.0
+		_main_shape_slide_start_time = -1.0
 	if Input.is_action_pressed("SecondaryShapeSlide"):
+		if _secondary_shape_slide_start_time < 0.0:
+			_secondary_shape_slide_start_time = snapped_time
 		secondary_shape_slide_delta += delta
 	if Input.is_action_just_released("SecondaryShapeSlide"):
-		new_shape_buttons.append(_new_shape_button_data(snapped_time, secondary_shape_slide_delta))
+		var secondary_start = _secondary_shape_slide_start_time if _secondary_shape_slide_start_time >= 0.0 else snapped_time
+		new_shape_buttons.append(_new_shape_button_data(secondary_start, secondary_shape_slide_delta, _SHAPE_PATH_SECONDARY))
 		secondary_shape_slide_delta = 0.0
+		_secondary_shape_slide_start_time = -1.0
 		
 	if Input.is_action_just_pressed("Quit"):
 		_save()
@@ -324,10 +341,12 @@ func _new_guitar_button_data(timestamp: float, pos_x: float, material: Material)
 	data.material = material
 	return data
 
-func _new_shape_button_data(timestamp: float, time_delta: float) -> ShapeButtonData:
+func _new_shape_button_data(timestamp: float, time_delta: float, path_points: Array) -> ShapeButtonData:
 	var data := ShapeButtonData.new()
 	data.timestamp = timestamp
-	data.time_delta = time_delta
+	data.spawn_timestamp = max(0.0, timestamp - _SHAPE_FOCUS_DURATION)
+	data.time_delta = max(_SHAPE_MIN_DURATION, time_delta)
+	data.path_points = path_points
 	return data
 
 func _new_switch_data(timestamp: float, switch_to: int) -> SwitchData:
@@ -396,8 +415,10 @@ func _serialize_shape_buttons(items: Array[ShapeButtonData]) -> Array[Dictionary
 		if item == null:
 			continue
 		serialized.append({
+			"spawn_timestamp": item.spawn_timestamp,
 			"timestamp": item.timestamp,
 			"time_delta": item.time_delta,
+			"path_points": item.path_points,
 		})
 	return serialized
 
@@ -495,8 +516,17 @@ func _deserialize_shape_buttons(raw_items: Variant) -> Array[ShapeButtonData]:
 			continue
 		var item_dict: Dictionary = raw_item
 		var data := ShapeButtonData.new()
+		data.spawn_timestamp = _to_float(item_dict.get("spawn_timestamp", _to_float(item_dict.get("timestamp", 0.0)) - _SHAPE_FOCUS_DURATION))
 		data.timestamp = _to_float(item_dict.get("timestamp", 0.0))
 		data.time_delta = _to_float(item_dict.get("time_delta", 0.0))
+		# Handle old lane-based data for backward compatibility
+		var raw_path = item_dict.get("path_points")
+		if raw_path is Array:
+			data.path_points = raw_path
+		else:
+			# Fall back to default paths if lane data exists
+			var lane = _to_int(item_dict.get("lane", 0))
+			data.path_points = _SHAPE_PATH_MAIN if lane == 0 else _SHAPE_PATH_SECONDARY
 		items.append(data)
 
 	return items

@@ -4,15 +4,13 @@
 [ext_resource type="Script" uid="uid://clnyyt65hd2ni" path="res://models/shape_slider/shape_slider.gd" id="1_u18s4"]
 [ext_resource type="Texture2D" uid="uid://ct4rvf0h6ws3s" path="res://resources/icons/shapes_circle_guitarhands.png" id="2_qv6ui"]
 [ext_resource type="AudioStream" uid="uid://d8le7n1uvteh" path="res://resources/sounds/Alchemist HiHat 7.wav" id="3_hyggs"]
+[ext_resource type="Texture2D" uid="uid://ca65rqijoaf2y" path="res://resources/icons/outline_shape_button.png" id="4_151w7"]
+[ext_resource type="Script" uid="uid://b0aeulbnhbuv1" path="res://models/shape_slider/line_path_follow.gd" id="5_stw44"]
 
 [sub_resource type="Curve2D" id="Curve2D_u18s4"]
-_data = {
-"points": PackedVector2Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-}
-point_count = 2
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_sprfh"]
-radius = 40.0
+radius = 50.0
 
 [sub_resource type="GradientTexture1D" id="GradientTexture1D_a4lpf"]
 width = 5
@@ -56,22 +54,38 @@ loop = false
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PathFollow2D/ShapeButton" unique_id=1969380279]
 shape = SubResource("CircleShape2D_sprfh")
 
-[node name="TextureRect" type="TextureRect" parent="PathFollow2D/ShapeButton" unique_id=1412231293]
+[node name="ButtonCircle" type="TextureRect" parent="PathFollow2D/ShapeButton" unique_id=1412231293]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -40.0
-offset_top = -40.0
-offset_right = 40.0
-offset_bottom = 40.0
+offset_left = -50.0
+offset_top = -50.0
+offset_right = 50.0
+offset_bottom = 50.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("1_2jwg1")
 texture = ExtResource("2_qv6ui")
 
-[node name="GPUParticles" type="GPUParticles2D" parent="PathFollow2D/ShapeButton" unique_id=856158611]
+[node name="TimerCircle" type="TextureRect" parent="PathFollow2D" unique_id=979090965]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -200.0
+offset_right = 200.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(200, 200)
+theme = ExtResource("1_2jwg1")
+texture = ExtResource("4_151w7")
+
+[node name="GPUParticles" type="GPUParticles2D" parent="PathFollow2D" unique_id=856158611]
 emitting = false
 amount = 32
 texture = SubResource("GradientTexture1D_a4lpf")
@@ -80,7 +94,11 @@ one_shot = true
 explosiveness = 1.0
 process_material = SubResource("ParticleProcessMaterial_yrga7")
 
-[node name="Release" type="AudioStreamPlayer" parent="PathFollow2D/ShapeButton" unique_id=1039332197]
+[node name="Release" type="AudioStreamPlayer" parent="PathFollow2D" unique_id=1039332197]
 stream = ExtResource("3_hyggs")
 
-[connection signal="finished" from="PathFollow2D/ShapeButton/Release" to="." method="_on_release_finished"]
+[node name="Line2D" type="Line2D" parent="." unique_id=1862274277 node_paths=PackedStringArray("path")]
+script = ExtResource("5_stw44")
+path = NodePath("..")
+
+[connection signal="finished" from="PathFollow2D/Release" to="." method="_on_release_finished"]

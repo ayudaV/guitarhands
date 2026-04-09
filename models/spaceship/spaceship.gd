@@ -1,7 +1,7 @@
 extends CharacterBody3D
 @export var enable := true
 @export var tracked_hands: int = 1
-@export var side_speed: float = 3.0
+@export var side_speed: float = 2.0
 @export var max_rotation_rad_for_input: float = 0.8
 @export var max_mesh_incline_deg: float = 25.0
 @export var mesh_incline_lerp_speed: float = 8.0

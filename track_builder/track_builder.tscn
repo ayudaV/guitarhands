@@ -43,13 +43,7 @@ music = NodePath("../../ConfigLayer/PlaybackController/Music")
 
 [node name="ShapeLayer" type="CanvasLayer" parent="." unique_id=292552023]
 
-[node name="ShapeRoot" type="Control" parent="ShapeLayer" unique_id=851485490]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="ShapeRoot" type="Node2D" parent="ShapeLayer" unique_id=278833112]
 
 [node name="OverlayLayer" type="CanvasLayer" parent="." unique_id=1246835686]
 
