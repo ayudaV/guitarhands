@@ -89,8 +89,6 @@ file_reader = NodePath("../../../FileReader")
 playback_controller = NodePath("../../PlaybackController")
 
 [node name="FileLoader" parent="." unique_id=320670669 instance=ExtResource("7_2pksa")]
-use_beat_snap = null
-beat_snap_divisor = null
 
 [node name="FileWriter" parent="." unique_id=569449936 node_paths=PackedStringArray("music", "track_follower") instance=ExtResource("6_drlrx")]
 music = NodePath("../ConfigLayer/PlaybackController/Music")

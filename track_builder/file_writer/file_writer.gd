@@ -45,6 +45,22 @@ var _spaceship_next_button_time := -1.0
 var _spaceship_last_button_time := -1.0
 var _pending_spaceship_button_trigger := false
 
+# Guitar slider tracking per lane
+var _guitar_slide_start_times := {
+	"MRTrack": -1.0,
+	"RTrack": -1.0,
+	"MainTrack": -1.0,
+	"LTrack": -1.0,
+	"MLTrack": -1.0,
+}
+var _guitar_slide_start_raw_times := {
+	"MRTrack": -1.0,
+	"RTrack": -1.0,
+	"MainTrack": -1.0,
+	"LTrack": -1.0,
+	"MLTrack": -1.0,
+}
+
 const _TRACKS_DIR := "user://tracks"
 const _DATA_FILE_NAME := "data.json"
 const _LEGACY_DATA_FILE_NAME := "game_data.json"
@@ -84,6 +100,11 @@ func discard_unsaved_changes() -> void:
 	_spaceship_next_button_time = -1.0
 	_spaceship_last_button_time = -1.0
 	_pending_spaceship_button_trigger = false
+	# Reset all guitar slider start times
+	for key in _guitar_slide_start_times:
+		_guitar_slide_start_times[key] = -1.0
+	for key in _guitar_slide_start_raw_times:
+		_guitar_slide_start_raw_times[key] = -1.0
 
 func import_track_data(data: Dictionary) -> void:
 	track_name = String(data.get("track_name", track_name)).strip_edges()
@@ -220,16 +241,12 @@ func _process(delta: float) -> void:
 
 	_update_spaceship_button_placement(timer)
 	
-	if Input.is_action_just_pressed("MRTrack"):
-		new_guitar_buttons.append(_new_guitar_button_data(snapped_time, 2, orange_button))
-	if Input.is_action_just_pressed("RTrack"):
-		new_guitar_buttons.append(_new_guitar_button_data(snapped_time, 1, blue_button))
-	if Input.is_action_just_pressed("MainTrack"):
-		new_guitar_buttons.append(_new_guitar_button_data(snapped_time, 0, yellow_button))
-	if Input.is_action_just_pressed("LTrack"):
-		new_guitar_buttons.append(_new_guitar_button_data(snapped_time, -1, red_button))
-	if Input.is_action_just_pressed("MLTrack"):
-		new_guitar_buttons.append(_new_guitar_button_data(snapped_time, -2, green_button))
+	# Handle guitar lanes: click = button, hold >= 1 beat = slider.
+	_handle_guitar_slider_input("MRTrack", 2, orange_button, timer, snapped_time)
+	_handle_guitar_slider_input("RTrack", 1, blue_button, timer, snapped_time)
+	_handle_guitar_slider_input("MainTrack", 0, yellow_button, timer, snapped_time)
+	_handle_guitar_slider_input("LTrack", -1, red_button, timer, snapped_time)
+	_handle_guitar_slider_input("MLTrack", -2, green_button, timer, snapped_time)
 		
 	if Input.is_action_just_pressed("Guitar"):
 		new_switchs.append(_new_switch_data(snapped_time, Globals.Mode.GUITAR))
@@ -300,6 +317,31 @@ func _place_spaceship_button(timestamp: float) -> void:
 	_spaceship_last_button_time = timestamp
 	new_spaceship_buttons.append(_new_guitar_button_data(timestamp, track_follower.spaceship.position.x, purple_button))
 
+func _handle_guitar_slider_input(action_name: String, pos_x: float, material: Material, raw_time: float, snapped_time: float) -> void:
+	"""Short hold -> button, hold >= 1 beat -> slider."""
+	var key = action_name
+	
+	# On press, record the start time
+	if Input.is_action_just_pressed(action_name):
+		if _guitar_slide_start_times[key] < 0.0:
+			_guitar_slide_start_times[key] = snapped_time
+			_guitar_slide_start_raw_times[key] = raw_time
+	
+	# On release, decide between button and slider.
+	if Input.is_action_just_released(action_name):
+		if _guitar_slide_start_times[key] >= 0.0:
+			var start_time = _guitar_slide_start_times[key]
+			var raw_start_time = _guitar_slide_start_raw_times[key]
+			var end_time = snapped_time
+			var held_seconds = max(0.0, raw_time - raw_start_time)
+			var held_beats = _seconds_to_beats(held_seconds)
+			if held_beats >= 1.0:
+				new_guitar_sliders.append(_new_guitar_slider_data(start_time, end_time, pos_x, pos_x))
+			else:
+				new_guitar_buttons.append(_new_guitar_button_data(start_time, pos_x, material))
+			_guitar_slide_start_times[key] = -1.0
+			_guitar_slide_start_raw_times[key] = -1.0
+
 func _get_spaceship_button_interval() -> float:
 	return 60.0 / float(bpm) / _SPACESHIP_BEAT_DIVISOR
 
@@ -356,6 +398,14 @@ func _new_guitar_button_data(timestamp: float, pos_x: float, material: Material)
 	data.timestamp = timestamp
 	data.pos_x = pos_x
 	data.material = material
+	return data
+
+func _new_guitar_slider_data(start_timestamp: float, end_timestamp: float, start_x: float, end_x: float) -> GuitarSliderData:
+	var data := GuitarSliderData.new()
+	data.timestamp = start_timestamp
+	data.start_x = start_x
+	data.end_x = end_x
+	data.time_delta = max(0.05, end_timestamp - start_timestamp)
 	return data
 
 func _new_shape_button_data(timestamp: float, time_delta: float, path_points: Array) -> ShapeButtonData:
@@ -426,7 +476,12 @@ func _serialize_guitar_sliders(items: Array[GuitarSliderData]) -> Array[Dictiona
 	for item in items:
 		if item == null:
 			continue
-		serialized.append({"beat": _seconds_to_beats(item.timestamp)})
+		serialized.append({
+			"beat": _seconds_to_beats(item.timestamp),
+			"start_x": item.start_x,
+			"end_x": item.end_x,
+			"duration_beats": _seconds_to_beats(item.time_delta),
+		})
 	return serialized
 
 func _serialize_shape_buttons(items: Array[ShapeButtonData]) -> Array[Dictionary]:
@@ -532,6 +587,9 @@ func _deserialize_guitar_sliders(raw_items: Variant) -> Array[GuitarSliderData]:
 		var item_dict: Dictionary = raw_item
 		var data := GuitarSliderData.new()
 		data.timestamp = _dict_time_to_seconds(item_dict, "beat", "timestamp")
+		data.start_x = _to_float(item_dict.get("start_x", 0.0))
+		data.end_x = _to_float(item_dict.get("end_x", data.start_x))
+		data.time_delta = max(0.05, _dict_duration_to_seconds(item_dict, "duration_beats", "time_delta"))
 		items.append(data)
 
 	return items

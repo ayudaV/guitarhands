@@ -118,7 +118,12 @@ func _spawn_guitar_sliders(items: Array) -> void:
 			continue
 		var item_dict: Dictionary = item
 		var slider = _guitar_slider_scene.instantiate() as GuitarSlider
-		slider.progress = _dict_time_to_seconds(item_dict, "beat", "timestamp") * track_speed
+		slider.timestamp = _dict_time_to_seconds(item_dict, "beat", "timestamp")
+		slider.start_x = _to_float(item_dict.get("start_x", 0.0))
+		slider.end_x = _to_float(item_dict.get("end_x", slider.start_x))
+		slider.time_delta = max(0.05, _dict_duration_to_seconds(item_dict, "duration_beats", "time_delta"))
+		slider.track_speed = track_speed
+		slider.progress = slider.timestamp * track_speed
 		slider.add_to_group(_SPAWNED_GROUP)
 		track.add_child(slider)
 

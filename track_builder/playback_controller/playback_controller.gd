@@ -58,7 +58,6 @@ func start_playback() -> void:
 		for switch_node in switch_root.get_children():
 			if is_instance_valid(switch_node) and switch_node.has_method("start"):
 				switch_node.start()
-
 	_update_buttons()
 
 func pause_playback() -> void:
