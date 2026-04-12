@@ -32,7 +32,9 @@ func switch(switch_to : Globals.Mode):
 	mode = switch_to
 	match mode:
 		Globals.Mode.GUITAR: add_child(guitar_hitbox)
-		Globals.Mode.SPACESHIP: add_child(spaceship)
+		Globals.Mode.SPACESHIP:
+			add_child(spaceship)
+			spaceship.sync_to_hand_position()
 		Globals.Mode.SHAPES: add_child(shapes)
 	
 func clear():

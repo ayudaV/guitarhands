@@ -44,6 +44,14 @@ music = NodePath("../../ConfigLayer/PlaybackController/Music")
 
 [node name="ShapeRoot" type="Node2D" parent="ShapeLayer" unique_id=278833112]
 
+[node name="Line2D" type="Line2D" parent="ShapeLayer/ShapeRoot" unique_id=1757694358]
+visible = false
+points = PackedVector2Array(1160, 840, 760, 540)
+
+[node name="Line2D2" type="Line2D" parent="ShapeLayer/ShapeRoot" unique_id=1094555843]
+visible = false
+points = PackedVector2Array(760, 540, 1160, 240)
+
 [node name="OverlayLayer" type="CanvasLayer" parent="." unique_id=1246835686]
 
 [node name="HandOverlay" parent="OverlayLayer" unique_id=1018502388 instance=ExtResource("3_ltygu")]

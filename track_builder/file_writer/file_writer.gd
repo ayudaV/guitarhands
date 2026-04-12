@@ -26,13 +26,13 @@ var track_speed := 0.0
 @onready var purple_button : Material = preload("res://resources/materials/purple_button.tres")
 
 var new_guitar_buttons: Array[GuitarButtonData] = []
-var new_spaceship_buttons: Array[GuitarButtonData] = []
+var new_spaceship_paths: Array[Dictionary] = []
 var new_guitar_sliders: Array[GuitarSliderData] = []
 var new_shape_buttons: Array[ShapeButtonData] = []
 var new_switchs: Array[SwitchData] = []
 
 var guitar_buttons : Array[GuitarButtonData] = []
-var spaceship_buttons : Array[GuitarButtonData] = []
+var spaceship_paths : Array[Dictionary] = []
 var guitar_sliders: Array[GuitarSliderData] = []
 var shape_buttons: Array[ShapeButtonData] = []
 var switchs: Array[SwitchData] = []
@@ -41,9 +41,8 @@ var timer := 0.0
 var _main_shape_slide_start_time := -1.0
 var _secondary_shape_slide_start_time := -1.0
 var _spaceship_button_placing := false
-var _spaceship_next_button_time := -1.0
-var _spaceship_last_button_time := -1.0
-var _pending_spaceship_button_trigger := false
+var _spaceship_path_start_time := -1.0
+var _spaceship_path_start_x := 0.0
 
 # Guitar slider tracking per lane
 var _guitar_slide_start_times := {
@@ -67,7 +66,7 @@ const _LEGACY_DATA_FILE_NAME := "game_data.json"
 const _MUSIC_FILE_NAME := "music.wav"
 const _SHAPE_MIN_DURATION := 0.05
 const _SHAPE_FOCUS_DURATION := 0.8
-const _SPACESHIP_BEAT_DIVISOR := 2.0
+const _SPACESHIP_BUTTONS_PER_BEAT := 2.0
 const _TIME_EPSILON := 0.000001
 # Default shape paths
 const _SHAPE_PATH_MAIN := [[960.0 - 300.0, 540.0 - 100.0], [960.0 + 300.0, 540.0 - 100.0]]
@@ -90,16 +89,15 @@ func save_track() -> void:
 
 func discard_unsaved_changes() -> void:
 	new_guitar_buttons.clear()
-	new_spaceship_buttons.clear()
+	new_spaceship_paths.clear()
 	new_guitar_sliders.clear()
 	new_shape_buttons.clear()
 	new_switchs.clear()
 	_main_shape_slide_start_time = -1.0
 	_secondary_shape_slide_start_time = -1.0
 	_spaceship_button_placing = false
-	_spaceship_next_button_time = -1.0
-	_spaceship_last_button_time = -1.0
-	_pending_spaceship_button_trigger = false
+	_spaceship_path_start_time = -1.0
+	_spaceship_path_start_x = 0.0
 	# Reset all guitar slider start times
 	for key in _guitar_slide_start_times:
 		_guitar_slide_start_times[key] = -1.0
@@ -113,14 +111,14 @@ func import_track_data(data: Dictionary) -> void:
 	speed_multiplier = _to_float(data.get("speed_multiplier", speed_multiplier))
 	source_music_path = String(data.get("music_path", source_music_path)).strip_edges()
 	guitar_buttons = _deserialize_guitar_buttons(data.get("guitar_buttons", []))
-	spaceship_buttons = _deserialize_guitar_buttons(data.get("spaceship_buttons", []))
+	spaceship_paths = _deserialize_spaceship_paths(data.get("spaceship_paths", []), data.get("spaceship_buttons", []))
 	guitar_sliders = _deserialize_guitar_sliders(data.get("guitar_sliders", []))
 	shape_buttons = _deserialize_shape_buttons(data.get("shape_buttons", []))
 	switchs = _deserialize_switches(data.get("switchs", []))
 	use_beat_snap = bool(data.get("use_beat_snap", use_beat_snap))
 	beat_snap_divisor = max(1, _to_int(data.get("beat_snap_divisor", beat_snap_divisor)))
 	new_guitar_buttons.clear()
-	new_spaceship_buttons.clear()
+	new_spaceship_paths.clear()
 	new_guitar_sliders.clear()
 	new_shape_buttons.clear()
 	new_switchs.clear()
@@ -232,14 +230,14 @@ func _process(delta: float) -> void:
 	timer = music.get_playback_position()
 	var snapped_time = _snap_time_seconds(timer)
 
-	if Input.is_action_just_pressed("SpaceshipBPlace"):
-		_pending_spaceship_button_trigger = true
+	if Input.is_action_just_pressed("SpaceshipBPlace") and Globals.current_mode == Globals.Mode.SPACESHIP and _is_music_advancing():
+		if _spaceship_button_placing:
+			_stop_spaceship_button_placement(snapped_time)
+		else:
+			_start_spaceship_button_placement(snapped_time)
 
-	if _pending_spaceship_button_trigger and Globals.current_mode == Globals.Mode.SPACESHIP and _is_music_advancing():
-		_start_spaceship_button_placement(timer)
-		_pending_spaceship_button_trigger = false
-
-	_update_spaceship_button_placement(timer)
+	if _spaceship_button_placing and Globals.current_mode != Globals.Mode.SPACESHIP:
+		_stop_spaceship_button_placement(snapped_time)
 	
 	# Handle guitar lanes: click = button, hold >= 1 beat = slider.
 	_handle_guitar_slider_input("MRTrack", 2, orange_button, timer, snapped_time)
@@ -279,6 +277,8 @@ func _process(delta: float) -> void:
 		_secondary_shape_slide_start_time = -1.0
 		
 	if Input.is_action_just_pressed("Quit"):
+		if _spaceship_button_placing:
+			_stop_spaceship_button_placement(snapped_time)
 		_save()
 
 func _start_spaceship_button_placement(current_time: float) -> void:
@@ -288,34 +288,18 @@ func _start_spaceship_button_placement(current_time: float) -> void:
 		return
 
 	_spaceship_button_placing = true
-	var interval := _get_spaceship_button_interval()
-	_spaceship_next_button_time = ceil(current_time / interval) * interval
-	_spaceship_last_button_time = -1.0
+	_spaceship_path_start_time = current_time
+	_spaceship_path_start_x = _get_current_spaceship_x()
 
-func _update_spaceship_button_placement(current_time: float) -> void:
+func _stop_spaceship_button_placement(current_time: float) -> void:
 	if not _spaceship_button_placing:
 		return
-	if Globals.current_mode != Globals.Mode.SPACESHIP:
-		return
-	if not _is_music_advancing():
-		return
-	if music.stream == null:
-		return
-
-	var interval := _get_spaceship_button_interval()
-	if _spaceship_next_button_time < 0.0:
-		_spaceship_next_button_time = ceil(current_time / interval) * interval
-
-	while current_time + _TIME_EPSILON >= _spaceship_next_button_time:
-		_place_spaceship_button(_spaceship_next_button_time)
-		_spaceship_next_button_time += interval
-
-func _place_spaceship_button(timestamp: float) -> void:
-	if is_equal_approx(_spaceship_last_button_time, timestamp):
-		return
-
-	_spaceship_last_button_time = timestamp
-	new_spaceship_buttons.append(_new_guitar_button_data(timestamp, track_follower.spaceship.position.x, purple_button))
+	_spaceship_button_placing = false
+	var start_time := _spaceship_path_start_time if _spaceship_path_start_time >= 0.0 else current_time
+	var end_time = max(start_time, current_time)
+	new_spaceship_paths.append(_new_spaceship_path_data(start_time, end_time, _spaceship_path_start_x, _get_current_spaceship_x()))
+	_spaceship_path_start_time = -1.0
+	_spaceship_path_start_x = 0.0
 
 func _handle_guitar_slider_input(action_name: String, pos_x: float, material: Material, raw_time: float, snapped_time: float) -> void:
 	"""Short hold -> button, hold >= 1 beat -> slider."""
@@ -342,8 +326,13 @@ func _handle_guitar_slider_input(action_name: String, pos_x: float, material: Ma
 			_guitar_slide_start_times[key] = -1.0
 			_guitar_slide_start_raw_times[key] = -1.0
 
-func _get_spaceship_button_interval() -> float:
-	return 60.0 / float(bpm) / _SPACESHIP_BEAT_DIVISOR
+func _get_current_spaceship_x() -> float:
+	if track_follower == null or track_follower.spaceship == null:
+		return 0.0
+	return clampf(track_follower.spaceship.position.x, -2.0, 2.0)
+
+func _get_spaceship_buttons_per_beat() -> float:
+	return max(1.0, _SPACESHIP_BUTTONS_PER_BEAT)
 
 func _is_music_advancing() -> bool:
 	return music.playing and not music.stream_paused
@@ -356,13 +345,13 @@ func _save():
 		return
 	if record_mode == RecordMode.APPEND:
 		guitar_buttons += new_guitar_buttons
-		spaceship_buttons += new_spaceship_buttons
+		spaceship_paths += new_spaceship_paths
 		guitar_sliders += new_guitar_sliders
 		shape_buttons += new_shape_buttons
 		switchs += new_switchs
 		
 		guitar_buttons.sort_custom(func(a: GuitarButtonData, b: GuitarButtonData): return a.timestamp < b.timestamp)
-		spaceship_buttons.sort_custom(func(a: GuitarButtonData, b: GuitarButtonData): return a.timestamp < b.timestamp)
+		spaceship_paths.sort_custom(func(a: Dictionary, b: Dictionary): return _to_float(a.get("beat", 0.0)) < _to_float(b.get("beat", 0.0)))
 		guitar_sliders.sort_custom(func(a: GuitarSliderData, b: GuitarSliderData): return a.timestamp < b.timestamp)
 		shape_buttons.sort_custom(func(a: ShapeButtonData, b: ShapeButtonData): return a.timestamp < b.timestamp)
 		switchs.sort_custom(func(a: SwitchData, b: SwitchData): return a.timestamp < b.timestamp)
@@ -370,13 +359,13 @@ func _save():
 	
 	elif  record_mode == RecordMode.OVERWRITE:
 		guitar_buttons = new_guitar_buttons.duplicate()
-		spaceship_buttons = new_spaceship_buttons.duplicate()
+		spaceship_paths = new_spaceship_paths.duplicate(true)
 		guitar_sliders = new_guitar_sliders.duplicate()
 		shape_buttons = new_shape_buttons.duplicate()
 		switchs = new_switchs.duplicate()
 
 	_prepare_track_storage()
-	var data := _build_save_payload(guitar_buttons, spaceship_buttons, guitar_sliders, shape_buttons, switchs)
+	var data := _build_save_payload(guitar_buttons, spaceship_paths, guitar_sliders, shape_buttons, switchs)
 	var file := FileAccess.open(_get_save_loc(), FileAccess.WRITE)
 	if file == null:
 		push_warning("FileWriter: failed to open save path %s" % _get_save_loc())
@@ -408,6 +397,31 @@ func _new_guitar_slider_data(start_timestamp: float, end_timestamp: float, start
 	data.time_delta = max(0.05, end_timestamp - start_timestamp)
 	return data
 
+func _new_spaceship_path_data(start_timestamp: float, end_timestamp: float, start_x: float, end_x: float) -> Dictionary:
+	var duration_seconds = max(0.0, end_timestamp - start_timestamp)
+	var duration_beats := _seconds_to_beats(duration_seconds)
+	var subdivides = max(1, int(round(duration_beats * _get_spaceship_buttons_per_beat())))
+	if duration_seconds > _TIME_EPSILON:
+		subdivides = max(2, subdivides)
+	var clamped_start_x := clampf(start_x, -2.0, 2.0)
+	var clamped_end_x := clampf(end_x, -2.0, 2.0)
+	var travel := absf(clamped_end_x - clamped_start_x)
+	var arc_strength := clampf(0.08 + travel * 0.18, 0.05, 0.45)
+	var arc_direction := -signf(clamped_end_x - clamped_start_x)
+	if is_zero_approx(arc_direction):
+		arc_direction = 1.0 if int(floor(start_timestamp * 10.0)) % 2 == 0 else -1.0
+
+	return {
+		"beat": _seconds_to_beats(start_timestamp),
+		"duration_beats": duration_beats,
+		"start_x": clamped_start_x,
+		"end_x": clamped_end_x,
+		"subdivides": subdivides,
+		"arc_direction": arc_direction,
+		"arc_strength": arc_strength,
+		"material_path": purple_button.resource_path,
+	}
+
 func _new_shape_button_data(timestamp: float, time_delta: float, path_points: Array) -> ShapeButtonData:
 	var data := ShapeButtonData.new()
 	data.timestamp = timestamp
@@ -424,7 +438,7 @@ func _new_switch_data(timestamp: float, switch_to: int) -> SwitchData:
 
 func _build_save_payload(
 	items_guitar_buttons: Array[GuitarButtonData],
-	items_spaceship_buttons: Array[GuitarButtonData],
+	items_spaceship_paths: Array[Dictionary],
 	items_guitar_sliders: Array[GuitarSliderData],
 	items_shape_buttons: Array[ShapeButtonData],
 	items_switchs: Array[SwitchData],
@@ -450,11 +464,29 @@ func _build_save_payload(
 		"beat_snap_divisor": beat_snap_divisor,
 		"track_speed": float(track_speed),
 		"guitar_buttons": _serialize_guitar_buttons(items_guitar_buttons),
-		"spaceship_buttons": _serialize_guitar_buttons(items_spaceship_buttons),
+		"spaceship_buttons": [],
+		"spaceship_paths": _serialize_spaceship_paths(items_spaceship_paths),
 		"guitar_sliders": _serialize_guitar_sliders(items_guitar_sliders),
 		"shape_buttons": _serialize_shape_buttons(items_shape_buttons),
 		"switchs": _serialize_switches(items_switchs),
 	}
+
+func _serialize_spaceship_paths(items: Array[Dictionary]) -> Array[Dictionary]:
+	var serialized: Array[Dictionary] = []
+	for item in items:
+		if item.is_empty():
+			continue
+		serialized.append({
+			"beat": _to_float(item.get("beat", 0.0)),
+			"duration_beats": max(0.0, _to_float(item.get("duration_beats", 0.0))),
+			"start_x": clampf(_to_float(item.get("start_x", 0.0)), -2.0, 2.0),
+			"end_x": clampf(_to_float(item.get("end_x", 0.0)), -2.0, 2.0),
+			"subdivides": max(1, _to_int(item.get("subdivides", 1))),
+			"arc_direction": _to_float(item.get("arc_direction", 1.0)),
+			"arc_strength": clampf(_to_float(item.get("arc_strength", 0.12)), 0.0, 1.0),
+			"material_path": String(item.get("material_path", "")),
+		})
+	return serialized
 
 func _serialize_guitar_buttons(items: Array[GuitarButtonData]) -> Array[Dictionary]:
 	var serialized: Array[Dictionary] = []
@@ -591,6 +623,48 @@ func _deserialize_guitar_sliders(raw_items: Variant) -> Array[GuitarSliderData]:
 		data.end_x = _to_float(item_dict.get("end_x", data.start_x))
 		data.time_delta = max(0.05, _dict_duration_to_seconds(item_dict, "duration_beats", "time_delta"))
 		items.append(data)
+
+	return items
+
+func _deserialize_spaceship_paths(raw_paths: Variant, raw_legacy_buttons: Variant) -> Array[Dictionary]:
+	var items: Array[Dictionary] = []
+	if raw_paths is Array:
+		for raw_item in raw_paths:
+			if not (raw_item is Dictionary):
+				continue
+			var item_dict: Dictionary = raw_item
+			items.append({
+				"beat": _to_float(item_dict.get("beat", 0.0)),
+				"duration_beats": max(0.0, _to_float(item_dict.get("duration_beats", 0.0))),
+				"start_x": clampf(_to_float(item_dict.get("start_x", 0.0)), -2.0, 2.0),
+				"end_x": clampf(_to_float(item_dict.get("end_x", item_dict.get("start_x", 0.0))), -2.0, 2.0),
+				"subdivides": max(1, _to_int(item_dict.get("subdivides", 1))),
+				"arc_direction": _to_float(item_dict.get("arc_direction", 1.0)),
+				"arc_strength": clampf(_to_float(item_dict.get("arc_strength", 0.12)), 0.0, 1.0),
+				"material_path": String(item_dict.get("material_path", purple_button.resource_path)),
+			})
+
+	if not items.is_empty():
+		return items
+
+	# Legacy conversion: each button becomes a one-point path segment.
+	if raw_legacy_buttons is Array:
+		for raw_item in raw_legacy_buttons:
+			if not (raw_item is Dictionary):
+				continue
+			var item_dict: Dictionary = raw_item
+			var beat := _to_float(item_dict.get("beat", _seconds_to_beats(_to_float(item_dict.get("timestamp", 0.0)))))
+			var pos_x := clampf(_to_float(item_dict.get("pos_x", 0.0)), -2.0, 2.0)
+			items.append({
+				"beat": beat,
+				"duration_beats": 0.0,
+				"start_x": pos_x,
+				"end_x": pos_x,
+				"subdivides": 1,
+				"arc_direction": 1.0,
+				"arc_strength": 0.0,
+				"material_path": String(item_dict.get("material_path", purple_button.resource_path)),
+			})
 
 	return items
 

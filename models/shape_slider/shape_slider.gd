@@ -16,6 +16,7 @@ var enable = true
 var _spawned := false
 var _started := false
 var _completed := false
+var _is_pressing := false
 
 func _ready() -> void:
 	# If curve not set yet (no set_path call), configure default
@@ -44,35 +45,31 @@ func _process(delta: float) -> void:
 
 	if not _started:
 		_update_focus(song_time)
-		if song_time > timestamp + start_window:
-			_break_slide(false)
+		if song_time >= timestamp:
+			_start_auto_slide()
 		return
 
 	if moving:
 		path_follow.progress_ratio += delta / max(time_delta, 0.001)
 		if path_follow.progress_ratio >= 1.0:
 			_complete_slide()
-	else:
-		_break_slide(false)
-			
-func start_slide_interaction() -> void:
-	if not enable or _completed or music == null:
-		return
 
-	var song_time := music.get_playback_position()
-	if song_time < timestamp - start_window:
-		return
-	if song_time > timestamp + start_window:
-		return
 
+func _start_auto_slide() -> void:
+	if _started or _completed:
+		return
 	_started = true
 	moving = true
 	timer_circle.visible = false
+			
+func start_slide_interaction() -> void:
+	if not enable or _completed or not _spawned:
+		return
+	_is_pressing = true
 	$PathFollow2D/Release.play()
 
 func break_slide_interaction() -> void:
-	if moving:
-		_break_slide(false)
+	_is_pressing = false
 
 func _complete_slide() -> void:
 	if _completed:
@@ -80,18 +77,22 @@ func _complete_slide() -> void:
 	_completed = true
 	moving = false
 	Globals.add_score(1)
-	_break_slide(true)
+	_break_slide(true, _is_pressing)
 
-func _break_slide(play_effect: bool) -> void:
+func _break_slide(play_effect: bool, play_sound: bool = true) -> void:
 	if not enable:
 		return
 	enable = false
 	moving = false
+	_is_pressing = false
 	shape_body.queue_free()
 	timer_circle.visible = false
 	if play_effect:
 		$PathFollow2D/GPUParticles.emitting = true
-	$PathFollow2D/Release.play()
+	if play_sound:
+		$PathFollow2D/Release.play()
+	else:
+		queue_free()
 
 func _update_focus(song_time: float) -> void:
 	# Focus animation: scales from max_focus_scale (2.0) to 1.0 from spawn_timestamp to timestamp

@@ -14,6 +14,7 @@ var track_data: Dictionary = {}
 
 var guitar_buttons_data: Array[Dictionary] = []
 var spaceship_buttons_data: Array[Dictionary] = []
+var spaceship_paths_data: Array[Dictionary] = []
 var guitar_sliders_data: Array[Dictionary] = []
 var shape_buttons_data: Array[Dictionary] = []
 var switchs_data: Array[Dictionary] = []
@@ -52,6 +53,7 @@ func load_track(new_track_name: String) -> bool:
 	track_speed = _to_float(data.get("track_speed", bpm / 60.0 * speed_multiplier))
 	guitar_buttons_data = _load_dictionary_list(data.get("guitar_buttons", []))
 	spaceship_buttons_data = _load_dictionary_list(data.get("spaceship_buttons", []))
+	spaceship_paths_data = _load_dictionary_list(data.get("spaceship_paths", []))
 	guitar_sliders_data = _load_dictionary_list(data.get("guitar_sliders", []))
 	shape_buttons_data = _load_dictionary_list(data.get("shape_buttons", []))
 	switchs_data = _load_dictionary_list(data.get("switchs", []))

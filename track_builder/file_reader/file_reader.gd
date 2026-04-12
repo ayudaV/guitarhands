@@ -47,6 +47,7 @@ func reload_track() -> void:
 	track_title = String(data.get("title", track_title if not track_title.is_empty() else track_name))
 	var bpm := _to_float(data.get("bpm", 120.0))
 	_seconds_per_beat = 60.0 / max(bpm, 0.001)
+	print(_seconds_per_beat)
 	var speed_multiplier := _to_float(data.get("speed_multiplier", 1.0))
 	track_speed = _to_float(data.get("track_speed", bpm / 60.0 * speed_multiplier))
 
@@ -56,7 +57,11 @@ func reload_track() -> void:
 
 	track_follower.configure_transport(track_speed, false)
 	_spawn_guitar_buttons(data.get("guitar_buttons", []))
-	_spawn_spaceship_buttons(data.get("spaceship_buttons", []))
+	var spaceship_paths_data = data.get("spaceship_paths", [])
+	if spaceship_paths_data is Array and not spaceship_paths_data.is_empty():
+		_spawn_spaceship_path_buttons(spaceship_paths_data)
+	else:
+		_spawn_spaceship_buttons(data.get("spaceship_buttons", []))
 	_spawn_guitar_sliders(data.get("guitar_sliders", []))
 	_spawn_shape_buttons(data.get("shape_buttons", []))
 	_spawn_switchs(data.get("switchs", []))
@@ -100,17 +105,66 @@ func _spawn_spaceship_buttons(items: Array) -> void:
 		if not (item is Dictionary):
 			continue
 		var item_dict: Dictionary = item
-		var button = _guitar_button_scene.instantiate() as GuitarButton
-		button.timestamp = _dict_time_to_seconds(item_dict, "beat", "timestamp")
-		button.pos_x = _to_float(item_dict.get("pos_x", 0.0))
+		_spawn_spaceship_button(
+			_dict_time_to_seconds(item_dict, "beat", "timestamp"),
+			_to_float(item_dict.get("pos_x", 0.0)),
+			String(item_dict.get("material_path", ""))
+		)
+
+func _spawn_spaceship_path_buttons(items: Array) -> void:
+	for item in items:
+		if not (item is Dictionary):
+			continue
+		var item_dict: Dictionary = item
+		var start_time := _dict_time_to_seconds(item_dict, "beat", "timestamp")
+		var duration = max(0.0, _dict_duration_to_seconds(item_dict, "duration_beats", "time_delta"))
+		var end_time = start_time + duration
+		var start_x := _to_float(item_dict.get("start_x", 0.0))
+		var end_x := _to_float(item_dict.get("end_x", start_x))
+		var subdivides = max(1, _to_int(item_dict.get("subdivides", 1)))
 		var material_path := String(item_dict.get("material_path", ""))
-		if not material_path.is_empty():
-			var loaded_material := load(material_path)
-			if loaded_material is Material:
-				button.material = loaded_material as Material
-		button.track_speed = track_speed
-		button.add_to_group(_SPAWNED_GROUP)
-		track.add_child(button)
+		var arc_direction := _to_float(item_dict.get("arc_direction", _default_arc_direction(start_time, start_x, end_x)))
+		var arc_strength := _to_float(item_dict.get("arc_strength", _default_arc_strength(start_x, end_x)))
+
+		if subdivides == 1:
+			_spawn_spaceship_button(start_time, start_x, material_path)
+			continue
+
+		var denominator := float(max(subdivides - 1, 1))
+		for i in range(subdivides):
+			var t := float(i) / denominator
+			var organic_t := _ease_in_out_smooth(t)
+			var timestamp := lerpf(start_time, end_time, organic_t)
+			var base_x := lerpf(start_x, end_x, organic_t)
+			var arc_offset := sin(PI * organic_t) * arc_strength * arc_direction
+			var pos_x := base_x + arc_offset
+			_spawn_spaceship_button(timestamp, pos_x, material_path)
+
+func _spawn_spaceship_button(timestamp: float, pos_x: float, material_path: String) -> void:
+	var button = _guitar_button_scene.instantiate() as GuitarButton
+	button.timestamp = timestamp
+	button.pos_x = clampf(pos_x, -2.0, 2.0)
+	if not material_path.is_empty():
+		var loaded_material := load(material_path)
+		if loaded_material is Material:
+			button.material = loaded_material as Material
+	button.track_speed = track_speed
+	button.add_to_group(_SPAWNED_GROUP)
+	track.add_child(button)
+
+func _ease_in_out_smooth(t: float) -> float:
+	var clamped_t := clampf(t, 0.0, 1.0)
+	return clamped_t * clamped_t * (3.0 - 2.0 * clamped_t)
+
+func _default_arc_strength(start_x: float, end_x: float) -> float:
+	var travel := absf(end_x - start_x)
+	return clampf(0.08 + travel * 0.18, 0.05, 0.45)
+
+func _default_arc_direction(start_time: float, start_x: float, end_x: float) -> float:
+	if not is_equal_approx(start_x, end_x):
+		return -signf(end_x - start_x)
+	# Alternate up/down curvature deterministically for near-static paths.
+	return 1.0 if int(floor(start_time * 10.0)) % 2 == 0 else -1.0
 
 func _spawn_guitar_sliders(items: Array) -> void:
 	for item in items:

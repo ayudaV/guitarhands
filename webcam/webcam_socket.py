@@ -38,6 +38,7 @@ class webcam_socket(Node):
 		self._pending_capture_latency_ms = {}
 		self._last_timestamp_ms = 0
 		self._stable_hand_positions = {}
+		self._last_valid_texture = None
 
 	def _exit_tree(self) -> None:
 		if getattr(self, "cap", None) is not None and self.cap.isOpened():
@@ -214,7 +215,26 @@ class webcam_socket(Node):
 		frame_rgb = np.ascontiguousarray(frame_rgb, dtype=np.uint8)
 		pba = PackedByteArray.from_memory_view(memoryview(frame_rgb))
 		image = Image.create_from_data(width, height, False, FORMAT_RGB8, pba)
-		return ImageTexture.create_from_image(image)
+		texture = ImageTexture.create_from_image(image)
+		if isinstance(texture, ImageTexture):
+			self._last_valid_texture = texture
+			return texture
+		return self._get_fallback_texture()
+
+	def _get_fallback_texture(self) -> ImageTexture:
+		if isinstance(self._last_valid_texture, ImageTexture):
+			return self._last_valid_texture
+
+		empty = Image.new()
+		empty.create(1, 1, False, FORMAT_RGB8)
+		empty.fill(0x000000FF)
+		texture = ImageTexture.create_from_image(empty)
+		if isinstance(texture, ImageTexture):
+			self._last_valid_texture = texture
+			return texture
+
+		# Final guard to always satisfy expected return type.
+		return ImageTexture.new()
 
 	def _draw_hand_landmarks(self, frame_rgb: np.ndarray, hand_landmarks) -> None:
 		height, width = frame_rgb.shape[:2]
@@ -240,10 +260,9 @@ class webcam_socket(Node):
 		return self.get_image_texture(draw_hand_landmarks=False)
 
 	def get_image_texture(self, draw_hand_landmarks: bool = False) -> ImageTexture:
-		empty = Image.new()
 		frame_rgb, capture_latency_ms = self._capture_frame_rgb()
 		if frame_rgb is None:
-			return ImageTexture.create_from_image(empty)
+			return self._get_fallback_texture()
 
 		if self._hand_landmarker is not None:
 			timestamp_ms = self._next_timestamp_ms()
